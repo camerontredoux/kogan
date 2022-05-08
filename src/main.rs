@@ -2,5 +2,10 @@ use kogan::*;
 
 fn main() {
     dotenv::dotenv().ok();
-    let _ = Settings;
+    init(
+        std::env::var("TOKEN")
+            .expect("Missing token")
+            .parse()
+            .expect("Invalid token"),
+    );
 }
