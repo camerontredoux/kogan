@@ -8,6 +8,7 @@ use commands::help::*;
 use commands::rules::*;
 
 mod hooks;
+use components::sounds::Sound;
 use hooks::*;
 
 mod components;
@@ -76,10 +77,8 @@ impl EventHandler for Handler {
             mci.create_interaction_response(&ctx.http, |r| {
                 r.kind(InteractionResponseType::UpdateMessage)
                     .interaction_response_data(|d| {
-                        d.content(format!(
-                            "You chose **{}**, now choose another animal.",
-                            animal
-                        ))
+                        d.content(format!("You chose **{}**, now choose a sound.", animal))
+                            .components(|c| c.add_action_row(Sound::action_row()))
                     })
             })
             .await
@@ -91,7 +90,7 @@ impl EventHandler for Handler {
                 .build();
 
             while let Some(mci) = cib.next().await {
-                let sound = Animal::from_str(mci.data.values.get(0).unwrap()).unwrap();
+                let sound = Sound::from_str(&mci.data.custom_id).unwrap();
                 // Acknowledge the interaction and send a reply
                 mci.create_interaction_response(&ctx, |r| {
                     // This time we dont edit the message but reply to it

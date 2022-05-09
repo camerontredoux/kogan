@@ -1,6 +1,8 @@
-use std::{error, fmt, str::FromStr};
+use std::{fmt, str::FromStr};
 
 use serenity::builder::{CreateActionRow, CreateSelectMenu, CreateSelectMenuOption};
+
+use super::ParseComponentError;
 
 #[derive(Debug)]
 pub enum Animal {
@@ -9,17 +11,6 @@ pub enum Animal {
     Horse,
     Alpaca,
 }
-
-#[derive(Debug)]
-pub struct ParseComponentError(String);
-
-impl fmt::Display for ParseComponentError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Failed to parse {} as a component", self.0)
-    }
-}
-
-impl error::Error for ParseComponentError {}
 
 impl fmt::Display for Animal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -47,7 +38,7 @@ impl FromStr for Animal {
 }
 
 impl Animal {
-    fn emoji(&self) -> char {
+    pub fn emoji(&self) -> char {
         match self {
             Animal::Cat => '🐈',
             Animal::Dog => '🐕',
