@@ -1,23 +1,26 @@
-use std::process;
+use std::{collections::HashSet, process};
 
 use serenity::{
     async_trait,
     client::{Context, EventHandler},
     framework::{
         standard::{
-            macros::{command, group},
-            CommandResult,
+            buckets::RevertBucket,
+            help_commands,
+            macros::{command, group, help},
+            Args, CommandGroup, CommandResult, HelpOptions,
         },
-        Framework, StandardFramework,
+        StandardFramework,
     },
     http::Http,
-    model::{channel::Message, gateway::Ready, interactions::Interaction},
+    model::{channel::Message, gateway::Ready, id::UserId, interactions::Interaction},
     prelude::GatewayIntents,
+    utils::Color,
     Client,
 };
 
 #[group]
-#[commands(ping)]
+#[commands(usage, rules, cat)]
 struct General;
 
 struct Handler;
@@ -27,6 +30,21 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, data: Ready) {}
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {}
+}
+
+#[help]
+#[individual_command_tip = "Test"]
+#[command_not_found_text = "Could not find: `{}`."]
+async fn my_help(
+    context: &Context,
+    msg: &Message,
+    args: Args,
+    help_options: &'static HelpOptions,
+    groups: &[&'static CommandGroup],
+    owners: HashSet<UserId>,
+) -> CommandResult {
+    let _ = help_commands::with_embeds(context, msg, args, help_options, groups, owners).await;
+    Ok(())
 }
 
 #[tokio::main]
@@ -51,6 +69,7 @@ pub async fn init(token: String) {
     };
     let framework = StandardFramework::new()
         .configure(|c| c.prefix(".").with_whitespace(true).on_mention(Some(bot_id)))
+        .help(&MY_HELP)
         .group(&GENERAL_GROUP);
     let mut client = Client::builder(token, intents)
         .event_handler(Handler)
@@ -65,8 +84,62 @@ pub async fn init(token: String) {
 }
 
 #[command]
-async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
-    msg.reply(&ctx.http, "content").await?;
+async fn usage(ctx: &Context, msg: &Message) -> CommandResult {
+    if let Err(err) = msg
+        .channel_id
+        .send_message(&ctx.http, |m| {
+            m.embed(|e| {
+                e.color(Color::ORANGE)
+                    .title("How to use Kōgan")
+                    .description("List of Kōgan commands and their usage")
+                    .fields(vec![
+                        (
+                            "Prefix",
+                            ". (period) - must prefix all commands or use the @Kogan mention",
+                            false,
+                        ),
+                        ("Commands", "usage/help - displays this dialog box with all the commands for Kōgan\nrules - DM's the user with a list of server rules and bot rules", false),
+                    ])
+            })
+        })
+        .await
+    {
+        msg.reply(&ctx.http, "Error using this command").await.ok();
+        println!("{}", err);
+    };
 
     Ok(())
+}
+
+#[command]
+#[description = "Send's the server and bot rules as a DM to the user."]
+async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
+    let dm = msg
+        .author
+        .dm(&ctx.http, |m| {
+            m.content(
+                "This is a test DM for the server's rules. Will become an embed in the future.",
+            )
+        })
+        .await;
+
+    if let Err(err) = dm {
+        println!("Error DMing the author {}", err);
+    }
+
+    Ok(())
+}
+
+#[command]
+// Adds multiple aliases
+#[aliases("kitty", "neko")]
+// Make this command use the "emoji" bucket.
+#[bucket = "emoji"]
+// Allow only administrators to call this:
+#[required_permissions("ADMINISTRATOR")]
+async fn cat(ctx: &Context, msg: &Message) -> CommandResult {
+    msg.channel_id.say(&ctx.http, ":cat:").await?;
+
+    // We can return one ticket to the bucket undoing the ratelimit.
+    Err(RevertBucket.into())
 }
