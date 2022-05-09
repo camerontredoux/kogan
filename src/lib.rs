@@ -5,9 +5,9 @@ use serenity::{
     client::{Context, EventHandler},
     framework::{
         standard::{
-            buckets::RevertBucket,
+            buckets::{LimitedFor, RevertBucket},
             help_commands,
-            macros::{command, group, help},
+            macros::{command, group, help, hook},
             Args, CommandGroup, CommandResult, HelpOptions,
         },
         StandardFramework,
@@ -25,6 +25,11 @@ struct General;
 
 struct Handler;
 
+#[hook]
+async fn delay_action(ctx: &Context, msg: &Message) {
+    msg.channel_id.say(&ctx.http, "message delayed").await.ok();
+}
+
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, data: Ready) {}
@@ -33,9 +38,12 @@ impl EventHandler for Handler {
 }
 
 #[help]
-#[individual_command_tip = "Test"]
+#[individual_command_tip = "If you want more information about a specific command, just pass the command as argument."]
 #[command_not_found_text = "Could not find: `{}`."]
-async fn my_help(
+#[max_levenshtein_distance(3)]
+#[lacking_permissions = "Hide"]
+#[strikethrough_commands_tip_in_guild("")]
+async fn help(
     context: &Context,
     msg: &Message,
     args: Args,
@@ -69,14 +77,19 @@ pub async fn init(token: String) {
     };
     let framework = StandardFramework::new()
         .configure(|c| c.prefix(".").with_whitespace(true).on_mention(Some(bot_id)))
-        .help(&MY_HELP)
+        .help(&HELP)
+        .bucket("emoji", |b| {
+            b.delay(5)
+                .delay_action(delay_action)
+                .limit_for(LimitedFor::User)
+        })
+        .await
         .group(&GENERAL_GROUP);
     let mut client = Client::builder(token, intents)
         .event_handler(Handler)
         .framework(framework)
         .await
         .expect("Error creating client");
-
     if let Err(err) = client.start().await {
         println!("Failed to start client: {}", err);
         process::exit(1);
@@ -131,15 +144,10 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-// Adds multiple aliases
 #[aliases("kitty", "neko")]
-// Make this command use the "emoji" bucket.
 #[bucket = "emoji"]
-// Allow only administrators to call this:
-#[required_permissions("ADMINISTRATOR")]
 async fn cat(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.say(&ctx.http, ":cat:").await?;
 
-    // We can return one ticket to the bucket undoing the ratelimit.
     Err(RevertBucket.into())
 }
