@@ -15,7 +15,7 @@ pub async fn unknown_command(ctx: &Context, msg: &Message, command_name: &str) {
             m.embed(|e| {
                 e.title("Unkown command")
                     .description(&format!(
-                        "Command {} does not exist. Type .help for a list of available commands.",
+                        "Command `{}` does not exist. Type `.help` for a list of available commands.",
                         command_name
                     ))
                     .color(Color::RED)

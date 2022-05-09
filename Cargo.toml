@@ -7,5 +7,7 @@ edition = "2021"
 
 [dependencies]
 dotenv = "0.15.0"
-serenity = "0.11"
+serenity = { version = "0.11", default-features = true, features = [
+  "collector",
+] }
 tokio = { version = "1.18.1", features = ["full"] }
