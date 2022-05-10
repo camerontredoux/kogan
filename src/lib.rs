@@ -3,6 +3,7 @@ use std::str::FromStr;
 use std::time::Duration;
 
 mod commands;
+use commands::announce::*;
 use commands::emoji::*;
 use commands::help::*;
 use commands::rules::*;
@@ -30,7 +31,7 @@ use serenity::{
 
 #[group]
 #[description = "General commands"]
-#[commands(rules)]
+#[commands(rules, announce)]
 struct General;
 
 #[group]
