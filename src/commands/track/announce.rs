@@ -13,7 +13,8 @@ use serenity::{
 #[description = "Creates an announcement channel if it doesn't exit, and sends a message to all users in a specific group."]
 #[allowed_roles("ANNOUNCEMENTS")]
 async fn announce(ctx: &Context, msg: &Message) -> CommandResult {
-    let channels = GuildId(972981323130093648).channels(&ctx.http).await?;
+    let guild_id = msg.guild_id.unwrap();
+    let channels = guild_id.channels(&ctx.http).await?;
 
     if let Some(_) = channels.values().find(|c| c.name() == "announcements") {
         msg.channel_id
@@ -26,7 +27,7 @@ async fn announce(ctx: &Context, msg: &Message) -> CommandResult {
             })
             .await?;
     } else {
-        let _ = GuildId(972981323130093648)
+        let _ = guild_id
             .create_channel(&ctx.http, |c| {
                 c.kind(ChannelType::Text)
                     .name("announcements")

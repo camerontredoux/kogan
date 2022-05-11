@@ -1,7 +1,6 @@
 use rand;
 use rand::prelude::SliceRandom;
 
-use std::ops::DerefMut;
 use std::process;
 use std::str::FromStr;
 use std::time::Duration;
