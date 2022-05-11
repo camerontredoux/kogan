@@ -102,6 +102,7 @@ dependencies = [
  "num-integer",
  "num-traits",
  "serde",
+ "time 0.1.43",
  "winapi",
 ]
 
@@ -514,6 +515,7 @@ dependencies = [
 name = "kogan"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "dotenv",
  "rand",
  "reqwest",
@@ -1057,7 +1059,7 @@ dependencies = [
  "serde-value",
  "serde_json",
  "static_assertions",
- "time",
+ "time 0.3.9",
  "tokio",
  "tracing",
  "typemap_rev",
@@ -1162,6 +1164,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "time"
+version = "0.1.43"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca8a50ef2360fbd1eeb0ecd46795a87a19024eb4b53c5dc916ca1fd95fe62438"
+dependencies = [
+ "libc",
+ "winapi",
 ]
 
 [[package]]

@@ -5,6 +5,8 @@ use serenity::{
     utils::Color,
 };
 
+use super::trending::*;
+
 struct Anime<'a> {
     name: &'a str,
     image_url: &'a str,
@@ -80,13 +82,14 @@ impl<'a> Anime<'a> {
     }
 }
 
-#[command]
+#[command("info")]
 #[only_in("guilds")]
 #[description("Gathers data for an anime using kitsu.io and displays relevant information.")]
 #[usage("<anime name>")]
 #[example("aot season 4")]
 #[example("attack on titan")]
 #[example("shingeki final season")]
+#[sub_commands(trending)]
 async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     match msg.channel_id.name(&ctx).await {
         Some(m) => {

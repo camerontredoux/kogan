@@ -4,13 +4,13 @@ use rand::prelude::SliceRandom;
 use std::process;
 use std::str::FromStr;
 use std::time::Duration;
+use std::time::SystemTime;
 
 mod commands;
-use commands::emoji::*;
+use commands::anime::announce::*;
+use commands::anime::info::*;
 use commands::help::*;
 use commands::rules::*;
-use commands::track::announce::*;
-use commands::track::info::*;
 
 mod hooks;
 use components::sounds::Sound;
@@ -41,12 +41,6 @@ use serenity::{
 #[commands(rules, announce, info)]
 struct General;
 
-#[group]
-#[prefix = "emoji"]
-#[description = "Emoji messages"]
-#[commands(cat)]
-struct Emoji;
-
 struct Handler;
 
 async fn update_status(ctx: &Context, guild_id: GuildId) {
@@ -76,27 +70,30 @@ impl EventHandler for Handler {
         println!("Kōgan started and is ready to go 🔥");
 
         let log = std::env::args().skip(1).collect::<Vec<_>>();
+        let guild_id = GuildId(std::env::var("GUILD_ID").unwrap().parse().unwrap());
 
         match log.get(0) {
             Some(log) if log == "--log" => {
-                let guild_id = GuildId(std::env::var("GUILD_ID").unwrap().parse().unwrap());
-
                 let channels = ctx.cache.guild_channels(guild_id).unwrap();
 
+                let chrono = chrono::Local::now();
+                let time = chrono.format("%Y-%m-%d %I:%M:%S %p").to_string();
                 let bot_logs = channels.iter().find(|c| c.name() == "bot-logs").unwrap();
                 if let Err(err) = bot_logs
                     .send_message(&ctx, |m| {
-                        m.embed(|e| e.color(Color::DARK_GREEN).title("Kōgan started!"))
+                        m.embed(|e| {
+                            e.color(Color::DARK_GREEN)
+                                .title(format!("Kōgan started! {}", time))
+                        })
                     })
                     .await
                 {
                     println!("Error sending message: {:?}", err);
                 }
-
-                update_status(&ctx, guild_id).await;
             }
             _ => {}
         }
+        update_status(&ctx, guild_id).await;
     }
 
     async fn interaction_create(&self, _ctx: Context, _interaction: Interaction) {}
@@ -196,7 +193,6 @@ pub async fn init(token: String) {
                 .limit_for(LimitedFor::User)
         })
         .await
-        .group(&EMOJI_GROUP)
         .group(&GENERAL_GROUP);
 
     let mut client = Client::builder(token, intents)

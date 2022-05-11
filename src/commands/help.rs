@@ -9,7 +9,7 @@ use serenity::{
 };
 
 #[help]
-#[individual_command_tip = "If you want more information about a specific command, just pass the command as an argument. For example, .help rules"]
+#[individual_command_tip = "If you want more information about a specific command, just pass the command as an argument. For example, `.help rules`"]
 #[command_not_found_text = "Could not find: `{}`."]
 #[max_levenshtein_distance(3)]
 #[lacking_permissions = "Hide"]
