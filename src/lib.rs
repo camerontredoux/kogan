@@ -4,11 +4,11 @@ use rand::prelude::SliceRandom;
 use std::process;
 use std::str::FromStr;
 use std::time::Duration;
-use std::time::SystemTime;
 
 mod commands;
 use commands::anime::announce::*;
 use commands::anime::info::*;
+use commands::anime::trending::*;
 use commands::help::*;
 use commands::rules::*;
 
@@ -38,29 +38,35 @@ use serenity::{
 
 #[group]
 #[description = "General commands"]
-#[commands(rules, announce, info)]
+#[commands(rules, announce, info, trending)]
 struct General;
 
 struct Handler;
 
 async fn update_status(ctx: &Context, guild_id: GuildId) {
-    let members = ctx.cache.guild(guild_id).unwrap();
-    let members = members
-        .members
-        .values()
-        .filter(|m| !m.user.bot)
-        .collect::<Vec<_>>();
+    println!("guild_id: {}", guild_id);
+    tokio::time::sleep(Duration::from_secs(2)).await;
+    let members = ctx.cache.guild(guild_id);
+    if let Some(members) = members {
+        let members = members
+            .members
+            .values()
+            .filter(|m| !m.user.bot)
+            .collect::<Vec<_>>();
 
-    loop {
-        let random_member = members
-            .choose(&mut rand::thread_rng())
-            .unwrap()
-            .display_name()
-            .to_string();
+        loop {
+            let random_member = members
+                .choose(&mut rand::thread_rng())
+                .unwrap()
+                .display_name()
+                .to_string();
 
-        ctx.set_activity(Activity::playing(format!("with {} 🔥", random_member)))
-            .await;
-        tokio::time::sleep(Duration::from_secs(60)).await;
+            ctx.set_activity(Activity::playing(format!("with {} 🔥", random_member)))
+                .await;
+            tokio::time::sleep(Duration::from_secs(60)).await;
+        }
+    } else {
+        ctx.set_activity(Activity::playing("with no one 🥲")).await;
     }
 }
 

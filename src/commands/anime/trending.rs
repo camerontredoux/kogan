@@ -12,6 +12,8 @@ use serenity::{
     utils::Color,
 };
 
+use crate::commands::anime::Anime;
+
 fn next() -> CreateButton {
     let mut button = CreateButton::default();
     button.label("Next");
@@ -42,21 +44,18 @@ pub async fn trending(ctx: &Context, msg: &Message) -> CommandResult {
         .json::<serde_json::Value>()
         .await?;
 
-    let anime_list = anime_json["data"].as_array().unwrap();
-
     let mut index = 0;
-    let mut name = anime_list[index]["attributes"]["canonicalTitle"]
-        .as_str()
-        .unwrap();
+
+    let anime_list = anime_json["data"].as_array().unwrap();
 
     let m = msg
         .channel_id
         .send_message(&ctx.http, |m| {
             m.embed(|e| {
-                e.title("Top trending anime")
-                    .description("This is a list of the top trending anime.")
-                    .color(Color::DARK_GREEN)
-                    .field("Name", name, true)
+                e.title("Top trending anime of the week.")
+                    .description("This is a list of the top trending anime. Click next or previous to cycle through your options!")
+                    .color(Color::GOLD)
+                    .footer(|f| f.text("List is from kitsu.io, updated weekly."))
             })
             .content("_List will dissapear after **one** minute!_")
             .components(|c| c.add_action_row(action_row()))
@@ -75,9 +74,6 @@ pub async fn trending(ctx: &Context, msg: &Message) -> CommandResult {
                 if index >= anime_list.len() {
                     index = 0;
                 }
-                name = anime_list[index]["attributes"]["canonicalTitle"]
-                    .as_str()
-                    .unwrap();
             }
             "previous" => {
                 if index == 0 {
@@ -85,20 +81,41 @@ pub async fn trending(ctx: &Context, msg: &Message) -> CommandResult {
                 } else {
                     index -= 1;
                 }
-                name = anime_list[index]["attributes"]["canonicalTitle"]
-                    .as_str()
-                    .unwrap();
             }
             _ => continue,
         }
+        let anime = Anime::new(&anime_json, index);
         mci.create_interaction_response(&ctx.http, |r| {
             r.kind(InteractionResponseType::UpdateMessage)
                 .interaction_response_data(|d| {
                     d.embed(|e| {
-                        e.title("Top trending anime")
-                            .description("This is a list of the top trending anime.")
-                            .color(Color::DARK_GREEN)
-                            .field("Name", name, true)
+                        e.title(format!(
+                            "Info for {} (Rated {})",
+                            anime.name, anime.age_rating
+                        ))
+                        .color(Color::GOLD)
+                        .description(anime.description)
+                        .image(anime.image_url)
+                        .fields(vec![
+                            ("Rating", anime.rating, true),
+                            (
+                                "Episode Count",
+                                format!("{} episodes", anime.episodes).as_str(),
+                                true,
+                            ),
+                            (
+                                "Episode Length",
+                                format!("{} minutes", anime.episode_length).as_str(),
+                                true,
+                            ),
+                        ])
+                        .fields(vec![
+                            ("Start Date", anime.start_date, true),
+                            ("End Date", anime.end_date, true),
+                            ("Status", anime.status, true),
+                        ])
+                        .field("Age Rating Guide", anime.age_rating_guide, false)
+                        .footer(|f| f.text("Powered by Kitsu.io"))
                     })
                 })
         })

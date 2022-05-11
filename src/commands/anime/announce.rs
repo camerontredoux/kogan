@@ -21,7 +21,7 @@ async fn announce(ctx: &Context, msg: &Message) -> CommandResult {
             .send_message(&ctx.http, |m| {
                 m.embed(|e| {
                     e.color(Color::RED)
-                        .title("Chanell creation failed!")
+                        .title("Chanel creation failed!")
                         .description("Channel already exists.")
                 })
             })
