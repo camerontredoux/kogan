@@ -11,11 +11,57 @@ async fn track(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     match anime_name {
         Some(anime_name) => {
+            let anime_json = reqwest::get(&format!(
+                "https://kitsu.io/api/edge/anime?filter[text]={}&page[limit]=1",
+                anime_name
+            ))
+            .await?
+            .json::<serde_json::Value>()
+            .await?;
+
+            let name = anime_json["data"][0]["attributes"]["canonicalTitle"]
+                .as_str()
+                .unwrap();
+            let description = anime_json["data"][0]["attributes"]["synopsis"]
+                .as_str()
+                .unwrap();
+            let image_url = anime_json["data"][0]["attributes"]["posterImage"]["small"]
+                .as_str()
+                .unwrap();
+            // let rating = anime_json["data"][0]["attributes"]["averageRating"]
+            //     .as_f64()
+            //     .unwrap();
+            // let episodes = anime_json["data"][0]["attributes"]["episodeCount"]
+            //     .as_i64()
+            //     .unwrap();
+            // let start_date = anime_json["data"][0]["attributes"]["startDate"]
+            //     .as_str()
+            //     .unwrap();
+            // let end_date = anime_json["data"][0]["attributes"]["endDate"]
+            //     .as_str()
+            //     .unwrap();
+            // let status = anime_json["data"][0]["attributes"]["status"]
+            //     .as_str()
+            //     .unwrap();
+            // let genres = anime_json["data"][0]["attributes"]["genres"]
+            //     .as_array()
+            //     .unwrap();
+            // let studios = anime_json["data"][0]["attributes"]["studios"]
+            //     .as_array()
+            //     .unwrap();
+            // let episode_length = anime_json["data"][0]["attributes"]["episodeLength"]
+            //     .as_i64()
+            //     .unwrap();
+
+            println!("name: {}", name);
+
             msg.channel_id
                 .send_message(&ctx.http, |m| {
                     m.embed(|e| {
                         e.color(Color::DARK_GREEN)
-                            .title(format!("Tracking {}", anime_name))
+                            .title(format!("Tracking {}", name))
+                            .description(description)
+                            .image(image_url)
                     })
                 })
                 .await?;
