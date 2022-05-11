@@ -75,21 +75,30 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, _ready: Ready) {
         println!("Kōgan started and is ready to go 🔥");
 
-        let guild_id = GuildId(std::env::var("GUILD_ID").unwrap().parse().unwrap());
+        let log = std::env::args().skip(1).collect::<Vec<_>>();
 
-        let channels = ctx.cache.guild_channels(guild_id).unwrap();
+        if log.len() > 0 {
+            match log.get(0) {
+                Some(log) if log == "--log" => {
+                    let guild_id = GuildId(std::env::var("GUILD_ID").unwrap().parse().unwrap());
 
-        let bot_logs = channels.iter().find(|c| c.name() == "bot-logs").unwrap();
-        if let Err(err) = bot_logs
-            .send_message(&ctx, |m| {
-                m.embed(|e| e.color(Color::DARK_GREEN).title("Kōgan started!"))
-            })
-            .await
-        {
-            println!("Error sending message: {:?}", err);
+                    let channels = ctx.cache.guild_channels(guild_id).unwrap();
+
+                    let bot_logs = channels.iter().find(|c| c.name() == "bot-logs").unwrap();
+                    if let Err(err) = bot_logs
+                        .send_message(&ctx, |m| {
+                            m.embed(|e| e.color(Color::DARK_GREEN).title("Kōgan started!"))
+                        })
+                        .await
+                    {
+                        println!("Error sending message: {:?}", err);
+                    }
+
+                    update_status(&ctx, guild_id).await;
+                }
+                _ => {}
+            }
         }
-
-        update_status(&ctx, guild_id).await;
     }
 
     async fn interaction_create(&self, _ctx: Context, _interaction: Interaction) {}

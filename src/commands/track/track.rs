@@ -74,9 +74,9 @@ impl<'a> Anime<'a> {
 #[only_in("guilds")]
 #[description("Tracks an anime using kitsu.io and displays relevant information.")]
 #[usage("<anime name>")]
-#[example("aot")]
+#[example("aot season 4")]
 #[example("attack on titan")]
-#[example("shingeki")]
+#[example("shingeki final season")]
 async fn track(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     match msg.channel_id.name(&ctx).await {
         Some(m) => {
