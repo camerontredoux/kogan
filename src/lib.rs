@@ -3,10 +3,11 @@ use std::str::FromStr;
 use std::time::Duration;
 
 mod commands;
-use commands::announce::*;
 use commands::emoji::*;
 use commands::help::*;
 use commands::rules::*;
+use commands::track::announce::*;
+use commands::track::track::*;
 
 mod hooks;
 use components::sounds::Sound;
@@ -31,7 +32,7 @@ use serenity::{
 
 #[group]
 #[description = "General commands"]
-#[commands(rules, announce)]
+#[commands(rules, announce, track)]
 struct General;
 
 #[group]

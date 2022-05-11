@@ -8,8 +8,6 @@ use serenity::{
 #[command("rules")]
 #[sub_commands(bot)]
 #[description = "Send's the server and bot rules as a DM to the user."]
-#[example = "bot"]
-#[example = "server"]
 async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
     let dm = msg
         .author
