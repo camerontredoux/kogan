@@ -17,6 +17,59 @@ struct Anime<'a> {
     status: &'a str,
 }
 
+impl<'a> Anime<'a> {
+    fn new(anime_json: &'a serde_json::Value) -> Self {
+        let name = anime_json["data"][0]["attributes"]["canonicalTitle"]
+            .as_str()
+            .unwrap_or_else(|| "N/A");
+        let description = anime_json["data"][0]["attributes"]["synopsis"]
+            .as_str()
+            .unwrap_or_else(|| "No description available");
+        let image_url = anime_json["data"][0]["attributes"]["posterImage"]["small"]
+            .as_str()
+            .unwrap_or_else(|| "No image available");
+        let rating = anime_json["data"][0]["attributes"]["averageRating"]
+            .as_str()
+            .unwrap_or_else(|| "N/A");
+        let episodes = anime_json["data"][0]["attributes"]["episodeCount"]
+            .as_i64()
+            .unwrap_or_else(|| 0);
+        let start_date = anime_json["data"][0]["attributes"]["startDate"]
+            .as_str()
+            .unwrap_or_else(|| "N/A");
+        let end_date = anime_json["data"][0]["attributes"]["endDate"]
+            .as_str()
+            .unwrap_or_else(|| "N/A");
+        let status = anime_json["data"][0]["attributes"]["status"]
+            .as_str()
+            .unwrap_or_else(|| "N/A");
+        let episode_length = anime_json["data"][0]["attributes"]["episodeLength"]
+            .as_i64()
+            .unwrap_or_else(|| 0);
+
+        let status = match status {
+            "finished" => "Finished",
+            "current" => "Current",
+            "tba" => "To Be Announced",
+            "unreleased" => "Unreleased",
+            "upcoming" => "Upcoming",
+            _ => "Unknown",
+        };
+
+        Anime {
+            name,
+            image_url,
+            description,
+            rating,
+            episodes,
+            episode_length,
+            start_date,
+            end_date,
+            status,
+        }
+    }
+}
+
 #[command]
 #[only_in("guilds")]
 #[description("Tracks an anime using kitsu.io and displays relevant information.")]
@@ -64,7 +117,7 @@ async fn track(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             .json::<serde_json::Value>()
             .await?;
 
-            let anime = parse_json(&anime_json);
+            let anime = Anime::new(&anime_json);
 
             let name = match anime.name {
                 "N/A" => {
@@ -118,55 +171,4 @@ async fn track(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     }
 
     Ok(())
-}
-
-fn parse_json(anime_json: &serde_json::Value) -> Anime {
-    let name = anime_json["data"][0]["attributes"]["canonicalTitle"]
-        .as_str()
-        .unwrap_or_else(|| "N/A");
-    let description = anime_json["data"][0]["attributes"]["synopsis"]
-        .as_str()
-        .unwrap_or_else(|| "No description available");
-    let image_url = anime_json["data"][0]["attributes"]["posterImage"]["small"]
-        .as_str()
-        .unwrap_or_else(|| "No image available");
-    let rating = anime_json["data"][0]["attributes"]["averageRating"]
-        .as_str()
-        .unwrap_or_else(|| "N/A");
-    let episodes = anime_json["data"][0]["attributes"]["episodeCount"]
-        .as_i64()
-        .unwrap_or_else(|| 0);
-    let start_date = anime_json["data"][0]["attributes"]["startDate"]
-        .as_str()
-        .unwrap_or_else(|| "N/A");
-    let end_date = anime_json["data"][0]["attributes"]["endDate"]
-        .as_str()
-        .unwrap_or_else(|| "N/A");
-    let status = anime_json["data"][0]["attributes"]["status"]
-        .as_str()
-        .unwrap_or_else(|| "N/A");
-    let episode_length = anime_json["data"][0]["attributes"]["episodeLength"]
-        .as_i64()
-        .unwrap_or_else(|| 0);
-
-    let status = match status {
-        "finished" => "Finished",
-        "current" => "Current",
-        "tba" => "To Be Announced",
-        "unreleased" => "Unreleased",
-        "upcoming" => "Upcoming",
-        _ => "Unknown",
-    };
-
-    Anime {
-        name,
-        image_url,
-        description,
-        rating,
-        episodes,
-        episode_length,
-        start_date,
-        end_date,
-        status,
-    }
 }
