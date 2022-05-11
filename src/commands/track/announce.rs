@@ -3,7 +3,7 @@ use serenity::{
     framework::standard::{macros::command, CommandResult},
     model::{
         channel::{ChannelType, Message, PermissionOverwrite, PermissionOverwriteType},
-        id::{GuildId, RoleId},
+        id::RoleId,
         Permissions,
     },
     utils::Color,
