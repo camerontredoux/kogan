@@ -1,3 +1,7 @@
+use rand;
+use rand::prelude::SliceRandom;
+
+use std::ops::DerefMut;
 use std::process;
 use std::str::FromStr;
 use std::time::Duration;
@@ -17,7 +21,10 @@ mod components;
 use components::animal::*;
 
 use serenity::futures::StreamExt;
+use serenity::model::gateway::Activity;
+use serenity::model::id::GuildId;
 use serenity::model::interactions::InteractionResponseType;
+use serenity::utils::Color;
 use serenity::{
     async_trait,
     client::{Context, EventHandler},
@@ -43,10 +50,47 @@ struct Emoji;
 
 struct Handler;
 
+async fn update_status(ctx: &Context, guild_id: GuildId) {
+    let members = ctx.cache.guild(guild_id).unwrap();
+    let members = members
+        .members
+        .values()
+        .filter(|m| !m.user.bot)
+        .collect::<Vec<_>>();
+
+    loop {
+        let random_member = members
+            .choose(&mut rand::thread_rng())
+            .unwrap()
+            .display_name()
+            .to_string();
+
+        ctx.set_activity(Activity::playing(format!("with {} 🔥", random_member)))
+            .await;
+        tokio::time::sleep(Duration::from_secs(60)).await;
+    }
+}
+
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, _ctx: Context, _: Ready) {
+    async fn ready(&self, ctx: Context, _ready: Ready) {
         println!("Kōgan started and is ready to go 🔥");
+
+        let guild_id = GuildId(std::env::var("GUILD_ID").unwrap().parse().unwrap());
+
+        let channels = ctx.cache.guild_channels(guild_id).unwrap();
+
+        let bot_logs = channels.iter().find(|c| c.name() == "bot-logs").unwrap();
+        if let Err(err) = bot_logs
+            .send_message(&ctx, |m| {
+                m.embed(|e| e.color(Color::DARK_GREEN).title("Kōgan started!"))
+            })
+            .await
+        {
+            println!("Error sending message: {:?}", err);
+        }
+
+        update_status(&ctx, guild_id).await;
     }
 
     async fn interaction_create(&self, _ctx: Context, _interaction: Interaction) {}
@@ -117,6 +161,7 @@ pub async fn init(token: String) {
     let intents = GatewayIntents::non_privileged()
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::GUILD_MEMBERS
+        | GatewayIntents::GUILD_PRESENCES
         | GatewayIntents::MESSAGE_CONTENT;
 
     let http = Http::new(&token);

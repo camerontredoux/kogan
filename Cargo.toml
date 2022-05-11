@@ -11,3 +11,4 @@ serenity = { version = "0.11", default-features = true, features = [
   "collector",
 ] }
 tokio = { version = "1.18.1", features = ["full"] }
+rand = { version = "0.8.5", features = ["small_rng"] }
