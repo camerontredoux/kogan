@@ -15,6 +15,8 @@ struct Anime<'a> {
     start_date: &'a str,
     end_date: &'a str,
     status: &'a str,
+    age_rating: &'a str,
+    age_rating_guide: &'a str,
 }
 
 impl<'a> Anime<'a> {
@@ -46,6 +48,12 @@ impl<'a> Anime<'a> {
         let episode_length = anime_json["data"][0]["attributes"]["episodeLength"]
             .as_i64()
             .unwrap_or_else(|| 0);
+        let age_rating = anime_json["data"][0]["attributes"]["ageRating"]
+            .as_str()
+            .unwrap_or_else(|| "N/A");
+        let age_rating_guide = anime_json["data"][0]["attributes"]["ageRatingGuide"]
+            .as_str()
+            .unwrap_or_else(|| "N/A");
 
         let status = match status {
             "finished" => "Finished",
@@ -66,6 +74,8 @@ impl<'a> Anime<'a> {
             start_date,
             end_date,
             status,
+            age_rating,
+            age_rating_guide,
         }
     }
 }
@@ -135,7 +145,7 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 .send_message(&ctx.http, |m| {
                     m.embed(|e| {
                         e.color(Color::DARK_GREEN)
-                            .title(format!("Info for {}", name))
+                            .title(format!("Info for {} (Rated {})", name, anime.age_rating))
                             .description(anime.description)
                             .image(anime.image_url)
                             .fields(vec![
@@ -156,6 +166,7 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                                 ("End Date", anime.end_date, true),
                                 ("Status", anime.status, true),
                             ])
+                            .field("Age Rating Guide", anime.age_rating_guide, false)
                             .footer(|f| f.text("Powered by Kitsu.io"))
                     })
                 })
