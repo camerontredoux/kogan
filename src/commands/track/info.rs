@@ -72,12 +72,12 @@ impl<'a> Anime<'a> {
 
 #[command]
 #[only_in("guilds")]
-#[description("Tracks an anime using kitsu.io and displays relevant information.")]
+#[description("Gathers data for an anime using kitsu.io and displays relevant information.")]
 #[usage("<anime name>")]
 #[example("aot season 4")]
 #[example("attack on titan")]
 #[example("shingeki final season")]
-async fn track(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     match msg.channel_id.name(&ctx).await {
         Some(m) => {
             if m.as_str() != "anime" {
@@ -135,7 +135,7 @@ async fn track(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 .send_message(&ctx.http, |m| {
                     m.embed(|e| {
                         e.color(Color::DARK_GREEN)
-                            .title(format!("Tracking {}", name))
+                            .title(format!("Info for {}", name))
                             .description(anime.description)
                             .image(anime.image_url)
                             .fields(vec![

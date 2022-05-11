@@ -5,7 +5,7 @@
 
 <code><bold>Features</bold></code>
 
-  <h6>track - tracks an anime using the kitsu.io API, displaying relevant anime information as an embed.</h6>
+  <h6>info - gathers data for anime using the kitsu.io API, displaying relevant anime information as an embed.</h6>
   <h6><em>Coming soon!</em></h6>
 
   <h5>Kōgan is rōmaji for a Japanese word... this is an inside joke :)</h5>

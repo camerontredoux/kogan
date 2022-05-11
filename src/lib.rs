@@ -10,7 +10,7 @@ use commands::emoji::*;
 use commands::help::*;
 use commands::rules::*;
 use commands::track::announce::*;
-use commands::track::track::*;
+use commands::track::info::*;
 
 mod hooks;
 use components::sounds::Sound;
@@ -38,7 +38,7 @@ use serenity::{
 
 #[group]
 #[description = "General commands"]
-#[commands(rules, announce, track)]
+#[commands(rules, announce, info)]
 struct General;
 
 #[group]
