@@ -21,7 +21,7 @@ impl<'a> Anime<'a> {
         let name = anime_json["data"][index]["attributes"]["canonicalTitle"]
             .as_str()
             .unwrap_or_else(|| "N/A");
-        let description = anime_json["data"][2]["attributes"]["synopsis"]
+        let description = anime_json["data"][index]["attributes"]["synopsis"]
             .as_str()
             .unwrap_or_else(|| "No description available");
         let image_url = anime_json["data"][index]["attributes"]["posterImage"]["small"]
