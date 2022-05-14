@@ -1,0 +1,48 @@
+query AnimeData($id: Int) {
+  Media(id: $id, type: ANIME) {
+    title {
+      romaji
+      english
+    }
+    description
+    coverImage {
+      medium
+    }
+    averageScore
+    meanScore
+    format
+    nextAiringEpisode {
+      id
+    }
+    status
+    startDate {
+      year
+      month
+      day
+    }
+    endDate {
+      year
+      month
+      day
+    }
+    episodes
+    duration
+    seasonYear
+    season
+    characters {
+      edges {
+        id
+      }
+      nodes {
+        id
+      }
+      pageInfo {
+        total
+        perPage
+        currentPage
+        lastPage
+        hasNextPage
+      }
+    }
+  }
+}
