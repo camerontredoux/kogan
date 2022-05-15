@@ -6,111 +6,79 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Anime {
-    #[serde(rename = "data")]
+    /// List of all anime datum
     pub data: Vec<Datum>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Datum {
-    #[serde(rename = "attributes")]
+    /// Details for the current anime datum
     pub attributes: Attributes,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Attributes {
-    #[serde(rename = "synopsis")]
+    /// Synopsis of the anime series
     pub synopsis: Option<String>,
-
-    #[serde(rename = "titles")]
+    /// List of titles for the anime (e.g. English, Japanese, etc.)
     pub titles: Titles,
-
-    #[serde(rename = "canonicalTitle")]
+    /// The canonical title of the anime as it appears on the site
     pub canonical_title: Option<String>,
-
-    #[serde(rename = "abbreviatedTitles")]
+    /// The abbreviated and alternative titles of the anime
     pub abbreviated_titles: Vec<String>,
-
-    #[serde(rename = "averageRating")]
+    /// The average user score of the anime (out of 100)
     pub average_rating: Option<String>,
-
-    #[serde(rename = "ratingFrequencies")]
+    /// Average rating frequency of the anime for each rating value
     pub rating_frequencies: HashMap<String, String>,
-
-    #[serde(rename = "startDate")]
+    /// Release date
     pub start_date: Option<String>,
-
-    #[serde(rename = "endDate")]
+    /// End date
     pub end_date: Option<String>,
-
-    #[serde(rename = "nextRelease")]
+    /// The next episode release date of the anime
     pub next_release: Option<serde_json::Value>,
-
-    #[serde(rename = "popularityRank")]
+    /// Rank of the anime's popularity compared to other anime
     pub popularity_rank: Option<i64>,
-
-    #[serde(rename = "ratingRank")]
+    /// Rank of the anime's score using the average rating compared to other anime
     pub rating_rank: Option<i64>,
-
-    #[serde(rename = "ageRating")]
+    /// Age rating (e.g. 'R', 'PG-13', 'G', etc.)
     pub age_rating: Option<String>,
-
-    #[serde(rename = "ageRatingGuide")]
+    /// Age rating guide (e.g. 17+ (violence & profanity))
     pub age_rating_guide: Option<String>,
-
-    #[serde(rename = "subtype")]
+    /// Subtype (e.g. movie, special, OVA, etc.)
     pub subtype: Option<String>,
-
-    #[serde(rename = "status")]
+    /// Current status (e.g. finished, current, tba, etc.)
     pub status: Option<String>,
-
-    #[serde(rename = "coverImage")]
+    /// Cover image url
     pub cover_image: Option<CoverImage>,
-
-    #[serde(rename = "episodeCount")]
+    /// Total episode count
     pub episode_count: Option<i64>,
-
-    #[serde(rename = "episodeLength")]
+    /// Episode length in minutes
     pub episode_length: Option<i64>,
-
-    #[serde(rename = "totalLength")]
+    /// Total length of all episodes
     pub total_length: Option<i64>,
-
-    #[serde(rename = "youtubeVideoId")]
-    pub youtube_video_id: Option<String>,
-
-    #[serde(rename = "showType")]
-    pub show_type: Option<String>,
-
-    #[serde(rename = "nsfw")]
+    /// If the anime is nsfw
     pub nsfw: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CoverImage {
-    #[serde(rename = "tiny")]
+    /// The url of the smallest image
     pub tiny: Option<String>,
-
-    #[serde(rename = "large")]
+    /// The url of the largest image
     pub large: Option<String>,
-
-    #[serde(rename = "small")]
+    /// The url of the medium image
     pub small: Option<String>,
-
-    #[serde(rename = "original")]
+    /// The url of the original image
     pub original: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Titles {
-    #[serde(rename = "en")]
+    /// The english title for the anime
     pub en: Option<String>,
-
-    #[serde(rename = "en_jp")]
+    /// The rōmaji title for the anime
     pub en_jp: Option<String>,
-
-    #[serde(rename = "en_us")]
-    pub en_us: Option<String>,
-
-    #[serde(rename = "ja_jp")]
+    /// The japanese title for the anime
     pub ja_jp: Option<String>,
 }
