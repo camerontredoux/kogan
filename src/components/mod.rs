@@ -1,6 +1,7 @@
 use std::{error, fmt};
 
 pub mod animal;
+pub mod kitsu;
 pub mod sounds;
 
 #[derive(Debug)]

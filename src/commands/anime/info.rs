@@ -70,7 +70,7 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             let media: Media = serde_json::from_value(data).unwrap();
 
             let anime_json = reqwest::get(&format!(
-                "https://kitsu.io/api/edge/anime?filter[text]={}&page[limit]=1",
+                "https://kitsu.io/api/edge/anime?filter[text]={}&page[limit]=2",
                 anime_name
             ))
             .await?
@@ -78,7 +78,7 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             .await?;
 
             let test = serde_json::to_value(&anime_json).unwrap();
-            let finals: super::anime::Anime = serde_json::from_value(test).unwrap();
+            let finals: crate::components::kitsu::Anime = serde_json::from_value(test).unwrap();
 
             println!("{:#?}", finals);
 
@@ -100,7 +100,7 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 .send_message(&ctx.http, |m| {
                     m.embed(|e| {
                         e.color(Color::DARK_GREEN)
-                            .title(format!("Info for {}", media.title.english))
+                            .title(format!("Info for {}", name))
                             .description(media.description)
                             .image(media.coverImage.large)
                             .fields(vec![

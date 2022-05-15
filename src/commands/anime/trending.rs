@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use serde_json::json;
 use serenity::{
     builder::{CreateActionRow, CreateButton},
     client::Context,
@@ -36,9 +37,69 @@ fn action_row() -> CreateActionRow {
     ar
 }
 
+const QUERY: &str = "
+query AnimeData {
+    Page(page: 1, perPage: 10) {
+      media(type: ANIME, sort: TRENDING_DESC) {
+        id
+        idMal
+        title {
+          romaji
+          english
+        }
+        description
+        coverImage {
+          medium
+        }
+        averageScore
+        meanScore
+        format
+        nextAiringEpisode {
+          id
+        }
+        status
+        startDate {
+          year
+          month
+          day
+        }
+        endDate {
+          year
+          month
+          day
+        }
+        episodes
+        duration
+        seasonYear
+        season
+      }
+    }
+  }
+  
+  
+";
+
 #[command]
 #[description("Shows the top trending anime using the kitsu.io API.")]
 pub async fn trending(ctx: &Context, msg: &Message) -> CommandResult {
+    let client = reqwest::Client::new();
+    let graphql_json = json!({
+        "query": QUERY,
+    });
+
+    let graphql = client
+        .post("https://graphql.anilist.co")
+        .header("Content-Type", "application/json")
+        .header("Accept", "application/json")
+        .body(graphql_json.to_string())
+        .send()
+        .await?
+        .text()
+        .await?;
+
+    let result = serde_json::from_str::<serde_json::Value>(&graphql).unwrap();
+    println!("{:#?}", result);
+
     let anime_json = reqwest::get("https://kitsu.io/api/edge/trending/anime")
         .await?
         .json::<serde_json::Value>()
