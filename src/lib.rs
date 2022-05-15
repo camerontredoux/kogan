@@ -5,6 +5,8 @@ use std::process;
 use std::str::FromStr;
 use std::time::Duration;
 
+mod graphql;
+
 mod commands;
 use commands::anime::announce::*;
 use commands::anime::info::*;

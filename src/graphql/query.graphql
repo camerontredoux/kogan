@@ -1,5 +1,5 @@
-query AnimeData($id: Int) {
-  Media(id: $id, type: ANIME) {
+query AnimeData($search: String) {
+  Media(search: $search, type: ANIME, sort: POPULARITY_DESC) {
     title {
       romaji
       english
@@ -7,6 +7,7 @@ query AnimeData($id: Int) {
     description
     coverImage {
       medium
+      large
     }
     averageScore
     meanScore

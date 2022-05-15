@@ -1,20 +1,16 @@
-use crate::graphql::{self, Media};
+use crate::graphql::{anime_data, Media};
 
-#[tokio::main]
-pub async fn make_request() -> Result<(), Box<dyn std::error::Error>> {
-    use crate::graphql::anime_data::Variables;
-    let data = graphql::perform_query(Variables { id: Some(140960) })
-        .await?
-        .data
-        .ok_or("No data found")?
-        .media;
+pub async fn make_request(anime_name: &String) -> Result<Media, Box<dyn std::error::Error>> {
+    let data = Media::perform_query(anime_data::Variables {
+        search: Some(String::from(anime_name)),
+    })
+    .await?
+    .data
+    .ok_or("No data found")?
+    .media;
 
-    for item in data {
-        let val = serde_json::to_value(item).unwrap();
-        println!("{:#?}", val);
-        let s: Media = serde_json::from_value(val).unwrap();
-        println!("{:#?}", s);
-    }
+    let data = serde_json::to_value(data).unwrap();
+    let media: Media = serde_json::from_value(data).unwrap();
 
-    Ok(())
+    Ok(media)
 }

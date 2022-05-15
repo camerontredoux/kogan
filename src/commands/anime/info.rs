@@ -1,3 +1,4 @@
+use graphql_client::{GraphQLQuery, Response};
 use serenity::{
     client::Context,
     framework::standard::{macros::command, Args, CommandResult},
@@ -5,7 +6,8 @@ use serenity::{
     utils::Color,
 };
 
-use crate::commands::anime::Anime;
+use crate::graphql::{anilist, anime_data, AnimeData, Media};
+use crate::{commands::anime::Anime, graphql};
 
 use super::trending::*;
 
@@ -49,6 +51,24 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     match anime_name {
         Some(anime_name) => {
+            let request = AnimeData::build_query(anime_data::Variables {
+                search: Some(anime_name.to_string()),
+            });
+            let client = reqwest::Client::new();
+
+            let response = client
+                .post("https://graphql.anilist.co")
+                .json(&request)
+                .send()
+                .await?;
+
+            let response_body: Response<anime_data::ResponseData> = response.json().await?;
+
+            let data = response_body.data.ok_or("No data found")?;
+
+            let data = serde_json::to_value(data.media).unwrap();
+            let media: Media = serde_json::from_value(data).unwrap();
+
             let anime_json = reqwest::get(&format!(
                 "https://kitsu.io/api/edge/anime?filter[text]={}&page[limit]=1",
                 anime_name
@@ -56,6 +76,11 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             .await?
             .json::<serde_json::Value>()
             .await?;
+
+            let test = serde_json::to_value(&anime_json).unwrap();
+            let finals: super::anime::Anime = serde_json::from_value(test).unwrap();
+
+            println!("{:#?}", finals);
 
             let anime = Anime::new(&anime_json, 0);
 
@@ -75,26 +100,42 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 .send_message(&ctx.http, |m| {
                     m.embed(|e| {
                         e.color(Color::DARK_GREEN)
-                            .title(format!("Info for {} (Rated {})", name, anime.age_rating))
-                            .description(anime.description)
-                            .image(anime.image_url)
+                            .title(format!("Info for {}", media.title.english))
+                            .description(media.description)
+                            .image(media.coverImage.large)
                             .fields(vec![
-                                ("Rating", anime.rating, true),
+                                ("Rating", format!("{}", media.averageScore), true),
                                 (
                                     "Episode Count",
-                                    format!("{} episodes", anime.episodes).as_str(),
+                                    format!("{} episodes", media.episodes),
                                     true,
                                 ),
                                 (
                                     "Episode Length",
-                                    format!("{} minutes", anime.episode_length).as_str(),
+                                    format!("{} minutes", anime.episode_length),
                                     true,
                                 ),
                             ])
                             .fields(vec![
-                                ("Start Date", anime.start_date, true),
-                                ("End Date", anime.end_date, true),
-                                ("Status", anime.status, true),
+                                (
+                                    "Start Date",
+                                    format!(
+                                        "{} {} {}",
+                                        media.startDate.year,
+                                        media.startDate.month,
+                                        media.startDate.day
+                                    ),
+                                    true,
+                                ),
+                                (
+                                    "End Date",
+                                    format!(
+                                        "{} {} {}",
+                                        media.endDate.year, media.endDate.month, media.endDate.day
+                                    ),
+                                    true,
+                                ),
+                                ("Status", media.status, true),
                             ])
                             .field("Age Rating Guide", anime.age_rating_guide, false)
                             .footer(|f| f.text("Powered by Kitsu.io"))
