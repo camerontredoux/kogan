@@ -1,12 +1,13 @@
-query TrendingQuery {
-  Page(page: 1, perPage: 10) {
-    media(type: ANIME, sort: TRENDING_DESC) {
-      id
+query TrendingQuery($amt: Int, $search: String, $sort: [MediaSort]) {
+  Page(page: 1, perPage: $amt) {
+    media(search: $search, type: ANIME, sort: $sort) {
+      idMal
       title {
         romaji
         english
         native
       }
+      description
       coverImage {
         medium
         large
@@ -25,8 +26,16 @@ query TrendingQuery {
         day
       }
       genres
+      episodes
+      duration
       seasonYear
       season
+      rankings {
+        rank
+        type
+        allTime
+        context
+      }
     }
   }
 }

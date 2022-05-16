@@ -155,8 +155,10 @@ impl Attributes {
             .unwrap_or("No date provided.")
     }
 
-    pub fn next_release(&self) -> Option<&serde_json::Value> {
-        self.next_release.as_ref()
+    pub fn next_release(&self) -> &serde_json::Value {
+        self.next_release
+            .as_ref()
+            .unwrap_or(&serde_json::Value::Null)
     }
 
     pub fn popularity_rank(&self) -> &i64 {
