@@ -5,8 +5,8 @@
 
 <code><bold>Features</bold></code>
 
-  <h6>info - gathers data for anime using the kitsu.io API, displaying relevant anime information as an embed.</h6>
-  <h6>trending - displays a paginated message that cycles through this week's top 10 anime.</h6>
+  <h6>info - gathers and displays data for an anime using the AniList API</h6>
+  <h6>trending - displays a paginated message that cycles through this week's trending anime</h6>
   <br>
   <h6><em>More coming soon!</em></h6>
 
