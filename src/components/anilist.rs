@@ -39,6 +39,7 @@ pub struct Media {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Ranking {
     rank: Option<u32>,
+    #[serde(rename = "type")]
     kind: Option<String>,
     allTime: Option<bool>,
     context: Option<String>,
@@ -77,30 +78,29 @@ impl Media {
     }
 
     pub fn rankings(&self) -> String {
-        let rank = self
+        println!("{:#?}", self.rankings);
+        let rankings = self
             .rankings
             .iter()
-            .filter(|r| r.allTime.unwrap_or(false))
-            .collect::<Vec<_>>();
+            .find(|r| r.kind.as_ref().unwrap() == "RATED");
 
         format!(
             "#{} {}",
-            rank.get(0).unwrap().rank.unwrap(),
-            rank.get(0).unwrap().context.as_ref().unwrap()
+            rankings.unwrap().rank.unwrap(),
+            rankings.unwrap().context.as_ref().unwrap()
         )
     }
 
     pub fn popularity(&self) -> String {
-        let rank = self
+        let rankings = self
             .rankings
             .iter()
-            .filter(|r| r.allTime.unwrap_or(false))
-            .collect::<Vec<_>>();
+            .find(|r| r.kind.as_ref().unwrap() == "POPULAR");
 
         format!(
             "#{} {}",
-            rank.get(1).unwrap().rank.unwrap(),
-            rank.get(1).unwrap().context.as_ref().unwrap()
+            rankings.unwrap().rank.unwrap(),
+            rankings.unwrap().context.as_ref().unwrap()
         )
     }
 

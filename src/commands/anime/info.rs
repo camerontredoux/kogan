@@ -81,32 +81,6 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 }
             };
 
-            let anime_json = reqwest::get(&format!(
-                "https://kitsu.io/api/edge/anime?filter[text]={}&page[limit]=1",
-                anime_name
-            ))
-            .await?
-            .json::<serde_json::Value>()
-            .await?;
-
-            let test = serde_json::to_value(&anime_json).unwrap();
-            let finals: crate::components::kitsu::Anime = serde_json::from_value(test).unwrap();
-
-            let anime = match finals.data.get(0) {
-                Some(anime) => &anime.attributes,
-                None => {
-                    msg.channel_id
-                        .send_message(&ctx.http, |m| {
-                            m.embed(|e| {
-                                e.description("No anime found with that title.")
-                                    .color(Color::RED)
-                            })
-                        })
-                        .await?;
-                    return Ok(());
-                }
-            };
-
             msg.channel_id
                 .send_message(&ctx.http, |m| {
                     m.embed(|e| {
@@ -158,49 +132,6 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     })
                 })
                 .await?;
-            // msg.channel_id
-            //     .send_message(&ctx.http, |m| {
-            //         m.embed(|e| {
-            //             e.color(Color::DARK_GREEN)
-            //                 .title(format!(
-            //                     "Info for {} (Rated {})",
-            //                     anime.canonical_title(),
-            //                     anime.age_rating()
-            //                 ))
-            //                 .description(anime.synopsis())
-            //                 .image(anime.poster_image())
-            //                 .fields(vec![
-            //                     ("Rating", format!("{}", anime.average_rating()), true),
-            //                     (
-            //                         "Episode Count",
-            //                         format!("{} episodes", anime.episode_count()),
-            //                         true,
-            //                     ),
-            //                     (
-            //                         "Episode Length",
-            //                         format!("{} minutes", anime.episode_length()),
-            //                         true,
-            //                     ),
-            //                 ])
-            //                 .fields(vec![
-            //                     ("Start Date", anime.start_date(), true),
-            //                     ("End Date", anime.end_date(), true),
-            //                     ("Status", anime.status(), true),
-            //                 ])
-            //                 .fields(vec![
-            //                     ("Type", anime.subtype(), true),
-            //                     (
-            //                         "Popularity Rank",
-            //                         &format!("#{}", anime.popularity_rank()),
-            //                         true,
-            //                     ),
-            //                     ("Rating Rank", &format!("#{}", anime.rating_rank()), true),
-            //                 ])
-            //                 .field("Age Rating Guide", anime.age_rating_guide(), false)
-            //                 .footer(|f| f.text("Powered by Kitsu.io"))
-            //         })
-            //     })
-            //     .await?;
         }
         None => {
             msg.channel_id
