@@ -50,7 +50,7 @@ pub struct Attributes {
     /// Current status (e.g. finished, current, tba, etc.)
     pub status: Option<String>,
     /// Poster image url
-    pub poster_image: Option<PosterImage>,
+    pub poster_image: PosterImage,
     /// Total episode count
     pub episode_count: Option<i64>,
     /// Episode length in minutes
@@ -81,4 +81,110 @@ pub struct Titles {
     pub en_jp: Option<String>,
     /// The japanese title for the anime
     pub ja_jp: Option<String>,
+}
+
+impl Attributes {
+    pub fn synopsis(&self) -> &str {
+        self.synopsis
+            .as_ref()
+            .map(AsRef::as_ref)
+            .unwrap_or("No description provided.")
+    }
+
+    pub fn poster_image(&self) -> &str {
+        &self
+            .poster_image
+            .large
+            .as_ref()
+            .map(AsRef::as_ref)
+            .unwrap_or("No image provided.")
+    }
+
+    pub fn episode_count(&self) -> &i64 {
+        self.episode_count.as_ref().unwrap_or(&0)
+    }
+
+    pub fn episode_length(&self) -> &i64 {
+        self.episode_length.as_ref().unwrap_or(&0)
+    }
+
+    pub fn titles(&self) -> &Titles {
+        &self.titles
+    }
+
+    pub fn canonical_title(&self) -> &str {
+        self.canonical_title
+            .as_ref()
+            .map(AsRef::as_ref)
+            .unwrap_or("No title provided.")
+    }
+
+    pub fn abbreviated_titles(&self) -> &[String] {
+        &self.abbreviated_titles
+    }
+
+    pub fn status(&self) -> &str {
+        self.status
+            .as_ref()
+            .map(AsRef::as_ref)
+            .unwrap_or("No rating provided.")
+    }
+
+    pub fn average_rating(&self) -> &str {
+        self.average_rating
+            .as_ref()
+            .map(AsRef::as_ref)
+            .unwrap_or("No rating provided.")
+    }
+
+    pub fn rating_frequencies(&self) -> &HashMap<String, String> {
+        &self.rating_frequencies
+    }
+
+    pub fn start_date(&self) -> &str {
+        self.start_date
+            .as_ref()
+            .map(AsRef::as_ref)
+            .unwrap_or("No date provided.")
+    }
+
+    pub fn end_date(&self) -> &str {
+        self.end_date
+            .as_ref()
+            .map(AsRef::as_ref)
+            .unwrap_or("No date provided.")
+    }
+
+    pub fn next_release(&self) -> Option<&serde_json::Value> {
+        self.next_release.as_ref()
+    }
+
+    pub fn popularity_rank(&self) -> &i64 {
+        self.popularity_rank.as_ref().unwrap_or(&0)
+    }
+
+    pub fn rating_rank(&self) -> &i64 {
+        self.rating_rank.as_ref().unwrap_or(&0)
+    }
+
+    pub fn age_rating(&self) -> &str {
+        self.age_rating
+            .as_ref()
+            .map(AsRef::as_ref)
+            .unwrap_or("No rating provided.")
+    }
+
+    pub fn age_rating_guide(&self) -> &str {
+        self.age_rating_guide
+            .as_ref()
+            .map(AsRef::as_ref)
+            .unwrap_or("No rating guide provided.")
+    }
+
+    pub fn subtype(&self) -> &str {
+        self.subtype
+            .as_ref()
+            .map(AsRef::as_ref)
+            .unwrap_or("No subtype provided.")
+    }
 }

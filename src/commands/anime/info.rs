@@ -72,60 +72,48 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             let test = serde_json::to_value(&anime_json).unwrap();
             let finals: crate::components::kitsu::Anime = serde_json::from_value(test).unwrap();
 
-            let anime = &finals.data.get(0).unwrap().attributes;
-
-            // let name = match anime.attributes.canonical_title.unwrap() {
-            //     "N/A" => {
-            //         msg.channel_id
-            //             .send_message(&ctx.http, |m| {
-            //                 m.embed(|e| e.description("Anime not found").color(Color::RED))
-            //             })
-            //             .await?;
-            //         return Ok(());
-            //     }
-            //     _ => anime.name,
-            // };
+            let anime = match finals.data.get(0) {
+                Some(anime) => &anime.attributes,
+                None => {
+                    msg.channel_id
+                        .send_message(&ctx.http, |m| {
+                            m.embed(|e| {
+                                e.description("No anime found with that title.")
+                                    .color(Color::RED)
+                            })
+                        })
+                        .await?;
+                    return Ok(());
+                }
+            };
 
             msg.channel_id
                 .send_message(&ctx.http, |m| {
                     m.embed(|e| {
                         e.color(Color::DARK_GREEN)
-                            .title(format!(
-                                "Info for {}",
-                                anime.canonical_title.as_ref().unwrap()
-                            ))
-                            .description(anime.synopsis.as_ref().unwrap())
-                            .attachment(
-                                anime.poster_image.as_ref().unwrap().large.as_ref().unwrap(),
-                            )
-                            .image(anime.poster_image.as_ref().unwrap().large.as_ref().unwrap())
+                            .title(format!("Info for {}", anime.canonical_title()))
+                            .description(anime.synopsis())
+                            .attachment(anime.poster_image())
+                            .image(anime.poster_image())
                             .fields(vec![
-                                (
-                                    "Rating",
-                                    format!("{}", anime.average_rating.as_ref().unwrap()),
-                                    true,
-                                ),
+                                ("Rating", format!("{}", anime.average_rating()), true),
                                 (
                                     "Episode Count",
-                                    format!("{} episodes", anime.episode_count.unwrap()),
+                                    format!("{} episodes", anime.episode_count()),
                                     true,
                                 ),
                                 (
                                     "Episode Length",
-                                    format!("{} minutes", anime.episode_length.unwrap()),
+                                    format!("{} minutes", anime.episode_length()),
                                     true,
                                 ),
                             ])
                             .fields(vec![
-                                ("Start Date", anime.start_date.as_ref().unwrap(), true),
-                                ("End Date", anime.end_date.as_ref().unwrap(), true),
-                                ("Status", anime.status.as_ref().unwrap(), true),
+                                ("Start Date", anime.start_date(), true),
+                                ("End Date", anime.end_date(), true),
+                                ("Status", anime.status(), true),
                             ])
-                            .field(
-                                "Age Rating Guide",
-                                anime.age_rating_guide.as_ref().unwrap(),
-                                false,
-                            )
+                            .field("Age Rating Guide", anime.age_rating_guide(), false)
                             .footer(|f| f.text("Powered by Kitsu.io"))
                     })
                 })
