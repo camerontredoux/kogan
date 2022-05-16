@@ -1,0 +1,32 @@
+query TrendingQuery {
+  Page(page: 1, perPage: 10) {
+    media(type: ANIME, sort: TRENDING_DESC) {
+      id
+      title {
+        romaji
+        english
+        native
+      }
+      coverImage {
+        medium
+        large
+      }
+      averageScore
+      format
+      status
+      startDate {
+        year
+        month
+        day
+      }
+      endDate {
+        year
+        month
+        day
+      }
+      genres
+      seasonYear
+      season
+    }
+  }
+}

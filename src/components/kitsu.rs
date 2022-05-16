@@ -49,8 +49,8 @@ pub struct Attributes {
     pub subtype: Option<String>,
     /// Current status (e.g. finished, current, tba, etc.)
     pub status: Option<String>,
-    /// Cover image url
-    pub cover_image: Option<CoverImage>,
+    /// Poster image url
+    pub poster_image: Option<PosterImage>,
     /// Total episode count
     pub episode_count: Option<i64>,
     /// Episode length in minutes
@@ -62,7 +62,7 @@ pub struct Attributes {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CoverImage {
+pub struct PosterImage {
     /// The url of the smallest image
     pub tiny: Option<String>,
     /// The url of the largest image

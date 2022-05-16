@@ -4,12 +4,12 @@ use serenity::{
 
 #[hook]
 pub async fn delay_action(ctx: &Context, msg: &Message) {
-    msg.channel_id.say(&ctx.http, "message delayed").await.ok();
+    msg.channel_id.say(&ctx.http, "Message delayed").await.ok();
 }
 
 #[hook]
 pub async fn unknown_command(ctx: &Context, msg: &Message, command_name: &str) {
-    if let Err(err) = msg
+    msg
         .channel_id
         .send_message(&ctx.http, |m| {
             m.embed(|e| {
@@ -21,8 +21,5 @@ pub async fn unknown_command(ctx: &Context, msg: &Message, command_name: &str) {
                     .color(Color::RED)
             })
         })
-        .await
-    {
-        println!("Error, {}", err);
-    }
+        .await.ok();
 }

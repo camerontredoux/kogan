@@ -5,22 +5,17 @@ use serenity::{
     utils::Color,
 };
 
-#[command("rules")]
+#[command("about")]
 #[sub_commands(bot)]
 #[description = "Send's the server and bot rules as a DM to the user."]
-async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
-    let dm = msg
-        .author
+async fn about(ctx: &Context, msg: &Message) -> CommandResult {
+    msg.author
         .dm(&ctx.http, |m| {
             m.content(
                 "This is a test DM for the server's rules. Will become an embed in the future.",
             )
         })
-        .await;
-
-    if let Err(err) = dm {
-        println!("Error DMing the author {}", err);
-    }
+        .await?;
 
     Ok(())
 }
@@ -28,10 +23,9 @@ async fn rules(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[description = "Send's the bot rules as a DM to the user"]
 async fn bot(ctx: &Context, msg: &Message) -> CommandResult {
-    let dm = msg
-        .author
-        .dm(&ctx.http, |m| {
-            m.embed(|e| {
+    msg.
+    author.dm(&ctx.http, |m| {
+        m.embed(|e| {
                 e.color(Color::ORANGE)
                     .title("Kōgan Bot Rules")
                     .description("Rules pertaining to the bot usage")
@@ -52,11 +46,7 @@ async fn bot(ctx: &Context, msg: &Message) -> CommandResult {
                     })
             })
         })
-        .await;
-
-    if let Err(err) = dm {
-        println!("Error DMing the author {}", err);
-    }
+        .await?;
 
     Ok(())
 }

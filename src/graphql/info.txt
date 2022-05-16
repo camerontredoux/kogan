@@ -1,5 +1,0 @@
-used get-graphql-schema to obtain graphql schema from a link
-installed with yarn
-
-also used graphql_client from cargo
-and used serde, serde_json, serde_derive

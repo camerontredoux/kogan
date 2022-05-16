@@ -1,22 +1,15 @@
-use handler::Handler;
-
-use std::process;
-
-mod graphql;
-
-mod handler;
-
 mod commands;
-use commands::anime::announce::*;
-use commands::anime::info::*;
-use commands::anime::trending::*;
-use commands::help::*;
-use commands::rules::*;
-
-mod hooks;
-use hooks::*;
-
 mod components;
+mod handler;
+mod hooks;
+
+use commands::{
+    about::*,
+    anime::{info::*, trending::*},
+    help::*,
+};
+use handler::Handler;
+use hooks::*;
 
 use serenity::{
     framework::standard::macros::group,
@@ -25,14 +18,20 @@ use serenity::{
     prelude::*,
     Client,
 };
+use std::process;
 
 #[group]
-#[description = "General commands"]
-#[commands(rules, announce, info, trending)]
-struct General;
+#[description = "Kōgan's general commands for displaying anime information."]
+#[commands(info, trending)]
+struct Anime;
+
+#[group]
+#[description = "Kōgan's commands for displaying bot information."]
+#[commands(about)]
+struct About;
 
 #[tokio::main]
-pub async fn init(token: String) {
+pub async fn init(token: String) -> Result<(), Box<dyn std::error::Error>> {
     let intents = GatewayIntents::non_privileged()
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::GUILD_MEMBERS
@@ -56,7 +55,12 @@ pub async fn init(token: String) {
     };
 
     let framework = StandardFramework::new()
-        .configure(|c| c.prefix(".").with_whitespace(true).on_mention(Some(bot_id)))
+        .configure(|c| {
+            c.prefix(".")
+                .case_insensitivity(true)
+                .with_whitespace(true)
+                .on_mention(Some(bot_id))
+        })
         .help(&HELP)
         .unrecognised_command(unknown_command)
         .bucket("emoji", |b| {
@@ -65,16 +69,17 @@ pub async fn init(token: String) {
                 .limit_for(LimitedFor::User)
         })
         .await
-        .group(&GENERAL_GROUP);
+        .group(&ANIME_GROUP)
+        .group(&ABOUT_GROUP);
 
     let mut client = Client::builder(token, intents)
         .event_handler(Handler)
         .framework(framework)
-        .await
-        .expect("Error creating client");
+        .await?;
 
     if let Err(err) = client.start().await {
-        println!("Failed to start client: {}", err);
-        process::exit(1);
-    };
+        println!("Error starting client: {}", err);
+    }
+
+    Ok(())
 }
