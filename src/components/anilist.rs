@@ -19,7 +19,7 @@ pub struct Page {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Media {
-    idMal: u32,
+    idMal: Option<u32>,
     title: Title,
     description: Option<String>,
     coverImage: CoverImage,
@@ -74,21 +74,29 @@ pub struct EndDate {
 
 impl Media {
     pub fn id(&self) -> u32 {
-        self.idMal
+        self.idMal.unwrap_or(0)
     }
 
     pub fn rankings(&self) -> String {
-        println!("{:#?}", self.rankings);
         let rankings = self
             .rankings
             .iter()
             .find(|r| r.kind.as_ref().unwrap() == "RATED");
 
-        format!(
-            "#{} {}",
-            rankings.unwrap().rank.unwrap(),
-            rankings.unwrap().context.as_ref().unwrap()
-        )
+        let (rank, context) = match rankings {
+            Some(ranking) => match ranking.rank {
+                Some(rank) => match &ranking.context {
+                    Some(context) => (rank, context),
+                    None => {
+                        return String::from("Unrated");
+                    }
+                },
+                None => return String::from("Unrated"),
+            },
+            None => return String::from("Unrated"),
+        };
+
+        format!("#{} {}", rank, context)
     }
 
     pub fn popularity(&self) -> String {
@@ -97,11 +105,20 @@ impl Media {
             .iter()
             .find(|r| r.kind.as_ref().unwrap() == "POPULAR");
 
-        format!(
-            "#{} {}",
-            rankings.unwrap().rank.unwrap(),
-            rankings.unwrap().context.as_ref().unwrap()
-        )
+        let (rank, context) = match rankings {
+            Some(ranking) => match ranking.rank {
+                Some(rank) => match &ranking.context {
+                    Some(context) => (rank, context),
+                    None => {
+                        return String::from("Unrated");
+                    }
+                },
+                None => return String::from("Unrated"),
+            },
+            None => return String::from("Unrated"),
+        };
+
+        format!("#{} {}", rank, context)
     }
 
     pub fn title_english(&self) -> String {

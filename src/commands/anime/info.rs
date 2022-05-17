@@ -67,7 +67,6 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             let data = response_body.data.ok_or("No data found")?;
 
             let data = serde_json::to_value(data.page).unwrap();
-            println!("{:#?}", data);
             let page: Page = serde_json::from_value(data).unwrap();
             let media = match page.media.get(0) {
                 Some(m) => m,

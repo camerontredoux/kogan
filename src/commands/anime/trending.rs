@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use serde_json::json;
 use serenity::{
     builder::{CreateActionRow, CreateButton},
     client::Context,
@@ -13,7 +12,8 @@ use serenity::{
     utils::Color,
 };
 
-use crate::commands::anime::Anime;
+use crate::components::anilist::{trending_query, Page, TrendingQuery};
+use graphql_client::{GraphQLQuery, Response};
 
 fn next() -> CreateButton {
     let mut button = CreateButton::default();
@@ -37,77 +37,34 @@ fn action_row() -> CreateActionRow {
     ar
 }
 
-const QUERY: &str = "
-query AnimeData {
-    Page(page: 1, perPage: 10) {
-      media(type: ANIME, sort: TRENDING_DESC) {
-        id
-        idMal
-        title {
-          romaji
-          english
-        }
-        description
-        coverImage {
-          medium
-        }
-        averageScore
-        meanScore
-        format
-        nextAiringEpisode {
-          id
-        }
-        status
-        startDate {
-          year
-          month
-          day
-        }
-        endDate {
-          year
-          month
-          day
-        }
-        episodes
-        duration
-        seasonYear
-        season
-      }
-    }
-  }
-  
-  
-";
-
 #[command]
-#[description("Shows the top trending anime using the kitsu.io API.")]
+#[description("Shows the top trending anime using the AniList API.")]
 pub async fn trending(ctx: &Context, msg: &Message) -> CommandResult {
     let client = reqwest::Client::new();
-    let graphql_json = json!({
-        "query": QUERY,
+    let query = TrendingQuery::build_query(trending_query::Variables {
+        amt: Some(10),
+        search: None,
+        sort: Some(vec![Some(trending_query::MediaSort::TRENDING_DESC)]),
     });
-
-    let graphql = client
-        .post("https://graphql.anilist.co")
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .body(graphql_json.to_string())
+    let response = client
+        .post("https://graphql.anilist.co/")
+        .json(&query)
         .send()
-        .await?
-        .text()
         .await?;
 
-    let result = serde_json::from_str::<serde_json::Value>(&graphql).unwrap();
-    println!("{:#?}", result);
+    let body: Response<trending_query::ResponseData> = response.json().await?;
 
-    let anime_json = reqwest::get("https://kitsu.io/api/edge/trending/anime")
-        .await?
-        .json::<serde_json::Value>()
-        .await?;
+    let raw_data = body.data.ok_or("No data found")?;
+    let data = serde_json::to_value(raw_data.page).unwrap();
+    let trending: Page = match serde_json::from_value(data) {
+        Ok(p) => p,
+        Err(err) => {
+            println!("Error serializing: {:#?}", err);
+            return Ok(());
+        }
+    };
 
     let mut index = 0;
-
-    let anime_list = anime_json["data"].as_array().unwrap();
 
     let m = msg
         .channel_id
@@ -116,7 +73,7 @@ pub async fn trending(ctx: &Context, msg: &Message) -> CommandResult {
                 e.title("Top trending anime of the week.")
                     .description("This is a list of the top trending anime. Click next or previous to cycle through your options!")
                     .color(Color::GOLD)
-                    .footer(|f| f.text("List is from kitsu.io, updated weekly."))
+                    .footer(|f| f.text("List is from AniList, updated weekly."))
             })
             .content("_List will dissapear after **one** minute!_")
             .components(|c| c.add_action_row(action_row()))
@@ -132,52 +89,71 @@ pub async fn trending(ctx: &Context, msg: &Message) -> CommandResult {
         match mci.data.custom_id.as_str() {
             "next" => {
                 index += 1;
-                if index >= anime_list.len() {
+                if index >= trending.media.len() {
                     index = 0;
                 }
             }
             "previous" => {
                 if index == 0 {
-                    index = anime_list.len() - 1;
+                    index = trending.media.len() - 1;
                 } else {
                     index -= 1;
                 }
             }
             _ => continue,
         }
-        let anime = Anime::new(&anime_json, index);
+        let media = trending.media.get(index).unwrap();
         mci.create_interaction_response(&ctx.http, |r| {
             r.kind(InteractionResponseType::UpdateMessage)
                 .interaction_response_data(|d| {
                     d.embed(|e| {
-                        e.title(format!(
-                            "Info for {} (Rated {})",
-                            anime.name, anime.age_rating
-                        ))
-                        .color(Color::GOLD)
-                        .description(anime.description)
-                        .image(anime.image_url)
-                        .fields(vec![
-                            ("Rating", anime.rating, true),
-                            (
-                                "Episode Count",
-                                format!("{} episodes", anime.episodes).as_str(),
-                                true,
-                            ),
-                            (
-                                "Episode Length",
-                                format!("{} minutes", anime.episode_length).as_str(),
-                                true,
-                            ),
-                        ])
-                        .fields(vec![
-                            ("Start Date", anime.start_date, true),
-                            ("End Date", anime.end_date, true),
-                            ("Status", anime.status, true),
-                        ])
-                        .field("Age Rating Guide", anime.age_rating_guide, false)
-                        .footer(|f| f.text("Powered by Kitsu.io"))
-                    })
+
+                        e.color(Color::GOLD)
+                            .title(format!(
+                                "{} (_{}_)",
+                                media.title_romaji(),
+                                media.title_english()
+                            ))
+                            .author(|a| {
+                                a.icon_url("https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png").name("❯❯ Link to MyAnimeList").url(format!("https://myanimelist.net/anime/{}", media.id()))
+                            })
+                            .description(media.description())
+                            .image(media.cover_image())
+                            .fields(vec![
+                                ("Rating", format!("{}%", media.average_score()), true),
+                                (
+                                    "Episode Count",
+                                    format!("{} episodes", media.episodes()),
+                                    true,
+                                ),
+                                (
+                                    "Episode Duration",
+                                    format!("{} minutes", media.duration()),
+                                    true,
+                                ),
+                            ])
+                            .fields(vec![
+                                ("Start Date", media.start_date(), true),
+                                ("End Date", media.end_date(), true),
+                                ("Status", media.status(), true),
+                            ])
+                            .fields(vec![
+                                (
+                                    "Season",
+                                    format!("{} {}", media.season(), media.season_year()),
+                                    true,
+                                ),
+                                ("Rankings", media.rankings(), true),
+                                ("Popularity", media.popularity(), true),
+                            ])
+                            .fields(vec![("Genre", media.genres(), true),("Format", media.format(), true)])
+                            .footer(|f| {
+                                f.text("Powered by AniList.co");
+                                f.icon_url(
+                                    "https://anilist.co/img/icons/android-chrome-512x512.png",
+                                )
+                            })
+                        })
                 })
         })
         .await?
