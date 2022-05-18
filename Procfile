@@ -1,1 +1,2 @@
-worker: cargo run --release
+web: ./target/release/kogan
+
