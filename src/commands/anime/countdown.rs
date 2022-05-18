@@ -9,8 +9,9 @@ use serenity::{
 use crate::components::anilist::{trending_query, Page, TrendingQuery};
 
 #[command]
-#[description = "Displays countdown until next episode release for the specified anime"]
+#[description = "Displays countdown until next episode release for the specified anime. Also displays the usual airing date."]
 #[aliases(cd)]
+#[only_in("guild")]
 #[usage("<anime name>")]
 #[example("aot season 4")]
 #[example("attack on titan")]

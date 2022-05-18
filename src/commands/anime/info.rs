@@ -8,6 +8,7 @@ use serenity::{
 };
 
 #[command]
+#[only_in("guild")]
 #[description("Gathers data for an anime using AniList and displays relevant information.")]
 #[usage("<anime name>")]
 #[example("aot season 4")]

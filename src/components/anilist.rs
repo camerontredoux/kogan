@@ -183,7 +183,7 @@ impl Media {
         let day = self.startDate.day;
 
         match (year, month, day) {
-            (Some(year), Some(month), Some(day)) => format!("{}-{}-{}", year, month, day),
+            (Some(year), Some(month), Some(day)) => format!("{}/{}/{}", month, day, year),
             _ => "No start date provided.".to_owned(),
         }
     }
@@ -194,7 +194,7 @@ impl Media {
         let day = self.endDate.day;
 
         match (year, month, day) {
-            (Some(year), Some(month), Some(day)) => format!("{}-{}-{}", year, month, day),
+            (Some(year), Some(month), Some(day)) => format!("{}/{}/{}", month, day, year),
             _ => "No end date provided.".to_owned(),
         }
     }
