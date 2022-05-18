@@ -10,6 +10,18 @@
   <h6>countdown - displays the time until the next episode's release and the airing date for that episode</h6>
   <br>
   <h6><em>More coming soon!</em></h6>
+  
+</div>
 
+---
+
+`Todo`
+
+- [ ] Anime character information
+- [ ] Anime episode information
+- [ ] Track an anime
+- [ ] Vote on an anime
+
+<div align="center">
   <h5>Kōgan is rōmaji for a Japanese word... this is an inside joke :)</h5>
 </div>
