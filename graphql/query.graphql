@@ -36,6 +36,11 @@ query TrendingQuery($amt: Int, $search: String, $sort: [MediaSort]) {
         allTime
         context
       }
+      nextAiringEpisode {
+        airingAt
+        episode
+        timeUntilAiring
+      }
     }
   }
 }

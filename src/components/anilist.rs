@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use chrono::{DateTime, TimeZone};
 use graphql_client::GraphQLQuery;
 use sanitize_html::rules::predefined::DEFAULT;
 use serde::{Deserialize, Serialize};
@@ -34,6 +35,14 @@ pub struct Media {
     seasonYear: Option<u32>,
     season: Option<String>,
     rankings: Vec<Ranking>,
+    nextAiringEpisode: Option<NextAiringEpisode>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NextAiringEpisode {
+    airingAt: u32,
+    timeUntilAiring: u32,
+    episode: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -210,6 +219,37 @@ impl Media {
         match &self.season {
             Some(season) => season.to_owned(),
             None => "No season provided.".to_owned(),
+        }
+    }
+
+    pub fn airingAt(&self) -> String {
+        match &self.nextAiringEpisode {
+            Some(episode) => {
+                let dt = chrono::Local.timestamp(episode.airingAt as i64, 0);
+                dt.format("%Y-%m-%d %I:%M:%S %p").to_string()
+            }
+            None => String::from("No release date"),
+        }
+    }
+
+    pub fn timeUntilAiring(&self) -> String {
+        match &self.nextAiringEpisode {
+            Some(episode) => {
+                let total_seconds = episode.timeUntilAiring;
+                let days = total_seconds / 86400;
+                let hours = (total_seconds - days * 86400) / 3600;
+                let minutes = (total_seconds - days * 86400 - hours * 3600) / 60;
+                let seconds = total_seconds - days * 86400 - hours * 3600 - minutes * 60;
+                format!("{}D {}H {}M {}S", days, hours, minutes, seconds)
+            }
+            None => String::from("No release date"),
+        }
+    }
+
+    pub fn episode(&self) -> &u32 {
+        match &self.nextAiringEpisode {
+            Some(episode) => &episode.episode,
+            None => &0,
         }
     }
 }

@@ -82,7 +82,7 @@ pub async fn trending(ctx: &Context, msg: &Message) -> CommandResult {
 
     let mut cic = m
         .await_component_interactions(&ctx)
-        .timeout(Duration::from_secs(60))
+        .timeout(Duration::from_secs(120))
         .build();
 
     while let Some(mci) = cic.next().await {

@@ -5,7 +5,7 @@ mod hooks;
 
 use commands::{
     about::*,
-    anime::{info::*, trending::*},
+    anime::{countdown::*, info::*, trending::*},
     help::*,
 };
 use handler::Handler;
@@ -22,7 +22,7 @@ use std::process;
 
 #[group]
 #[description = "Kōgan's general commands for displaying anime information."]
-#[commands(info, trending)]
+#[commands(info, trending, countdown)]
 struct Anime;
 
 #[group]
