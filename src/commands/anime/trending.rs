@@ -12,8 +12,7 @@ use serenity::{
     utils::Color,
 };
 
-use crate::components::anilist::{trending_query, Page, TrendingQuery};
-use graphql_client::{GraphQLQuery, Response};
+use crate::components::anilist::{trending_query, Page};
 
 fn next() -> CreateButton {
     let mut button = CreateButton::default();
@@ -40,29 +39,12 @@ fn action_row() -> CreateActionRow {
 #[command]
 #[description("Shows the top trending anime using the AniList API.")]
 pub async fn trending(ctx: &Context, msg: &Message) -> CommandResult {
-    let client = reqwest::Client::new();
-    let query = TrendingQuery::build_query(trending_query::Variables {
+    let variables = trending_query::Variables {
         amt: Some(10),
         search: None,
         sort: Some(vec![Some(trending_query::MediaSort::TRENDING_DESC)]),
-    });
-    let response = client
-        .post("https://graphql.anilist.co/")
-        .json(&query)
-        .send()
-        .await?;
-
-    let body: Response<trending_query::ResponseData> = response.json().await?;
-
-    let raw_data = body.data.ok_or("No data found")?;
-    let data = serde_json::to_value(raw_data.page).unwrap();
-    let trending: Page = match serde_json::from_value(data) {
-        Ok(p) => p,
-        Err(err) => {
-            println!("Error serializing: {:#?}", err);
-            return Ok(());
-        }
     };
+    let trending = Page::new(variables).await.unwrap();
 
     let mut index = 0;
 

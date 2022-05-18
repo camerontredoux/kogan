@@ -1,5 +1,4 @@
-use crate::components::anilist::{trending_query, Page, TrendingQuery};
-use graphql_client::{GraphQLQuery, Response};
+use crate::components::anilist::{trending_query, Page};
 use serenity::{
     client::Context,
     framework::standard::{macros::command, Args, CommandResult},
@@ -48,26 +47,13 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     match anime_name {
         Some(anime_name) => {
-            let client = reqwest::Client::new();
             let variables = trending_query::Variables {
-                search: Some(anime_name.to_string()),
+                search: Some(String::from(anime_name)),
                 amt: Some(1),
                 sort: Some(vec![Some(trending_query::MediaSort::POPULARITY_DESC)]),
             };
-            let request = TrendingQuery::build_query(variables);
+            let page = Page::new(variables).await.unwrap();
 
-            let response = client
-                .post("https://graphql.anilist.co")
-                .json(&request)
-                .send()
-                .await?;
-
-            let response_body: Response<trending_query::ResponseData> = response.json().await?;
-
-            let data = response_body.data.ok_or("No data found")?;
-
-            let data = serde_json::to_value(data.page).unwrap();
-            let page: Page = serde_json::from_value(data).unwrap();
             let media = match page.media.get(0) {
                 Some(m) => m,
                 None => {

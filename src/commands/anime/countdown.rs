@@ -1,4 +1,3 @@
-use graphql_client::{GraphQLQuery, Response};
 use serenity::{
     client::Context,
     framework::standard::{macros::command, Args, CommandResult},
@@ -6,7 +5,7 @@ use serenity::{
     utils::Color,
 };
 
-use crate::components::anilist::{trending_query, Page, TrendingQuery};
+use crate::components::anilist::{trending_query, Page};
 
 #[command]
 #[description = "Displays countdown until next episode release for the specified anime. Also displays the usual airing date."]
@@ -48,22 +47,12 @@ pub async fn countdown(ctx: &Context, msg: &Message, args: Args) -> CommandResul
 
     match anime_name {
         Some(anime) => {
-            let client = reqwest::Client::new();
-            let query = TrendingQuery::build_query(trending_query::Variables {
+            let variables = trending_query::Variables {
                 amt: Some(1),
                 search: Some(String::from(anime)),
                 sort: Some(vec![Some(trending_query::MediaSort::POPULARITY_DESC)]),
-            });
-            let response = client
-                .post("https://graphql.anilist.co/")
-                .json(&query)
-                .send()
-                .await?;
-
-            let body: Response<trending_query::ResponseData> = response.json().await?;
-            let raw_data = body.data.ok_or("Failed to get data")?;
-            let data = serde_json::to_value(raw_data.page).unwrap();
-            let page: Page = serde_json::from_value(data).unwrap();
+            };
+            let page = Page::new(variables).await.unwrap();
 
             let anime = match page.media.get(0) {
                 Some(a) => a,

@@ -1,9 +1,11 @@
 #![allow(non_snake_case)]
 
 use chrono::TimeZone;
-use graphql_client::GraphQLQuery;
+use graphql_client::{GraphQLQuery, Response};
 use sanitize_html::rules::predefined::DEFAULT;
 use serde::{Deserialize, Serialize};
+
+use self::trending_query::Variables;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -79,6 +81,23 @@ pub struct EndDate {
     year: Option<i32>,
     month: Option<i32>,
     day: Option<i32>,
+}
+
+impl Page {
+    pub async fn new(variables: Variables) -> Result<Self, Box<dyn std::error::Error>> {
+        let client = reqwest::Client::new();
+        let query = TrendingQuery::build_query(variables);
+        let response = client
+            .post("https://graphql.anilist.co/")
+            .json(&query)
+            .send()
+            .await?;
+
+        let body: Response<trending_query::ResponseData> = response.json().await?;
+        let raw_data = body.data.ok_or("Failed to get data")?;
+        let data = serde_json::to_value(raw_data.page).unwrap();
+        Ok(serde_json::from_value(data).unwrap())
+    }
 }
 
 impl Media {
