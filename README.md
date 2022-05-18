@@ -7,6 +7,7 @@
 
   <h6>info - gathers and displays data for an anime using the AniList API</h6>
   <h6>trending - displays a paginated message that cycles through this week's trending anime</h6>
+  <h6>countdown - displays the time until the next episode's release and the airing date for that episode</h6>
   <br>
   <h6><em>More coming soon!</em></h6>
 
