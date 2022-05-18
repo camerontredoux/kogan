@@ -8,12 +8,11 @@ use serenity::{
 };
 
 #[command]
-#[only_in("guilds")]
-#[description("Gathers data for an anime using kitsu.io and displays relevant information.")]
+#[description("Gathers data for an anime using AniList and displays relevant information.")]
 #[usage("<anime name>")]
 #[example("aot season 4")]
 #[example("attack on titan")]
-#[example("shingeki final season")]
+#[example("shingeki final season 2")]
 async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     // Check if the command is sent from the correct channel
     // Should only work in the anime channel

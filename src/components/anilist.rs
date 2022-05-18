@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use chrono::{DateTime, TimeZone};
+use chrono::TimeZone;
 use graphql_client::GraphQLQuery;
 use sanitize_html::rules::predefined::DEFAULT;
 use serde::{Deserialize, Serialize};
@@ -41,7 +41,7 @@ pub struct Media {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NextAiringEpisode {
     airingAt: u32,
-    timeUntilAiring: u32,
+    timeUntilAiring: usize,
     episode: u32,
 }
 
@@ -226,7 +226,7 @@ impl Media {
         match &self.nextAiringEpisode {
             Some(episode) => {
                 let dt = chrono::Local.timestamp(episode.airingAt as i64, 0);
-                dt.format("%Y-%m-%d %I:%M:%S %p").to_string()
+                dt.format("%D %I:%M:%S %p").to_string()
             }
             None => String::from("No release date"),
         }
@@ -235,12 +235,22 @@ impl Media {
     pub fn timeUntilAiring(&self) -> String {
         match &self.nextAiringEpisode {
             Some(episode) => {
-                let total_seconds = episode.timeUntilAiring;
-                let days = total_seconds / 86400;
-                let hours = (total_seconds - days * 86400) / 3600;
-                let minutes = (total_seconds - days * 86400 - hours * 3600) / 60;
-                let seconds = total_seconds - days * 86400 - hours * 3600 - minutes * 60;
-                format!("{}D {}H {}M {}S", days, hours, minutes, seconds)
+                const DAY: usize = 86400;
+                const HOUR: usize = 3600;
+                const MINUTE: usize = 60;
+
+                if episode.timeUntilAiring == 0 {
+                    return String::from("Now!");
+                }
+
+                let mut sec = episode.timeUntilAiring % DAY;
+                let days = episode.timeUntilAiring / DAY;
+                let hours = sec / HOUR;
+                sec %= HOUR;
+                let minutes = sec / MINUTE;
+                sec %= MINUTE;
+
+                format!("{}d {}h {}m {}s", days, hours, minutes, sec)
             }
             None => String::from("No release date"),
         }

@@ -2,7 +2,6 @@ use graphql_client::{GraphQLQuery, Response};
 use serenity::{
     client::Context,
     framework::standard::{macros::command, Args, CommandResult},
-    http::CacheHttp,
     model::channel::Message,
     utils::Color,
 };
@@ -11,6 +10,11 @@ use crate::components::anilist::{trending_query, Page, TrendingQuery};
 
 #[command]
 #[description = "Displays countdown until next episode release for the specified anime"]
+#[aliases(cd)]
+#[usage("<anime name>")]
+#[example("aot season 4")]
+#[example("attack on titan")]
+#[example("shingeki final season 2")]
 pub async fn countdown(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     match msg.channel_id.name(&ctx).await {
         Some(m) => {
@@ -81,11 +85,11 @@ pub async fn countdown(ctx: &Context, msg: &Message, args: Args) -> CommandResul
                             anime.title_english()
                         ))
                         .color(Color::GOLD)
-                        .description(format!(
-                            "Time until episode {} releases: {}",
-                            anime.episode(),
-                            anime.timeUntilAiring()
-                        ))
+                        .field(
+                            format!("Episode {} Airs in: ", anime.episode()),
+                            anime.timeUntilAiring(),
+                            true,
+                        )
                         .field("Airing Time: ", anime.airingAt(), false)
                     })
                 })
