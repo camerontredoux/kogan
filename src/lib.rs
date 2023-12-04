@@ -2,10 +2,12 @@ mod commands;
 mod components;
 mod handler;
 mod hooks;
+mod services;
+mod types;
 
 use commands::{
     about::*,
-    anime::{countdown::*, info::*, recommend::*, trending::*},
+    anime::{countdown::*, favorite::*, info::*, recommend::*, trending::*},
     help::*,
 };
 use handler::Handler;
@@ -22,7 +24,7 @@ use std::process;
 
 #[group]
 #[description = "Kōgan's general commands for displaying anime information."]
-#[commands(info, trending, countdown, recommend)]
+#[commands(info, trending, countdown, recommend, favorite)]
 struct Anime;
 
 #[group]

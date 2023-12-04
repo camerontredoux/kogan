@@ -1,4 +1,7 @@
-use crate::components::anilist::{trending_query, Page};
+use crate::{
+    components::anilist::{trending_query, Page},
+    services::{init_services, user_service::UpsertUserReq},
+};
 use serenity::{
     client::Context,
     framework::standard::{macros::command, Args, CommandResult},
@@ -13,7 +16,7 @@ use serenity::{
 #[example("aot season 4")]
 #[example("attack on titan")]
 #[example("shingeki final season 2")]
-async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+async fn favorite(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     // Check if the command is sent from the correct channel
     // Should only work in the anime channel
     match msg.channel_id.name(&ctx).await {
@@ -43,6 +46,8 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
     }
 
+    let user_service = init_services().await.user_service;
+
     let anime_name = args.remains();
 
     match anime_name {
@@ -65,6 +70,41 @@ async fn info(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     return Ok(());
                 }
             };
+
+            let author_id = msg.author.id.0.to_string();
+            let user = user_service.get_user(author_id.clone()).await;
+            match user {
+                Ok(user) => match user {
+                    Some(user) => {
+                        let mut animes = user.animes.clone();
+                        animes.push(media.title_english());
+                        user_service
+                            .upsert_user(UpsertUserReq {
+                                id: author_id,
+                                animes: animes.clone(),
+                            })
+                            .await
+                            .unwrap();
+                    }
+                    None => {
+                        user_service
+                            .upsert_user(UpsertUserReq {
+                                id: author_id,
+                                animes: vec![media.title_english()],
+                            })
+                            .await
+                            .unwrap();
+                    }
+                },
+                Err(_) => {
+                    msg.channel_id.send_message(&ctx.http, |m| {
+                        m.embed(|e| {
+                            e.color(Color::RED).title("Error setting favorite")
+                            .description("There was an error on the backend setting your favorite anime. Please try again or contact a server admin.")
+                        })
+                    }).await?;
+                }
+            }
 
             msg.channel_id
                 .send_message(&ctx.http, |m| {

@@ -1,13 +1,13 @@
 use mongodb::{
-    bson::{doc, Bson, Document},
+    bson::{doc, Document},
     error::Error,
-    options::{FindOneAndUpdateOptions, FindOptions},
+    options::{ClientOptions, FindOneOptions, FindOptions, ResolverConfig, UpdateOptions},
     results::{DeleteResult, InsertOneResult, UpdateResult},
-    Collection,
+    Client, Collection,
 };
 use tokio_stream::StreamExt;
 
-use self::user_service::UserService;
+use self::user_service::{User, UserService};
 
 pub mod user_service;
 
@@ -50,26 +50,47 @@ impl<T> BaseService<T> {
         cursor.collect().await
     }
 
-    pub async fn upsert(&self, filter: Document, update: Document) -> Result<T, Error>
+    pub async fn find_one(
+        &self,
+        filter: Document,
+        opts: Option<FindOneOptions>,
+    ) -> Result<Option<T>, Error>
+    where
+        T: serde::de::DeserializeOwned + Sync + Send + Unpin,
+    {
+        self.collection.find_one(filter, opts).await
+    }
+
+    pub async fn upsert(&self, filter: Document, update: Document) -> Result<(), Error>
     where
         T: serde::de::DeserializeOwned + Sync + Send + Unpin + serde::Serialize,
     {
-        let options = FindOneAndUpdateOptions::builder()
-            .upsert(Some(true))
-            .build();
+        let options = UpdateOptions::builder().upsert(true).build();
+        self.collection
+            .update_one(filter, update, Some(options))
+            .await?;
 
-        let user = self
-            .collection
-            .find_one_and_update(filter, update, options)
-            .await
-            .ok()
-            .unwrap()
-            .unwrap();
-
-        Ok(user)
+        Ok(())
     }
 }
 
 pub struct ServiceContainer {
     pub user_service: UserService,
+}
+
+pub async fn init_services() -> ServiceContainer {
+    let client_uri = std::env::var("MONGODB_URI").expect("Missing MONGODB_URI in .env");
+
+    let options =
+        ClientOptions::parse_with_resolver_config(&client_uri, ResolverConfig::cloudflare())
+            .await
+            .unwrap();
+
+    let client = Client::with_options(options).unwrap();
+
+    let user_collection = client.database("kogan").collection::<User>("users");
+
+    ServiceContainer {
+        user_service: user_service::UserService::new(user_collection),
+    }
 }

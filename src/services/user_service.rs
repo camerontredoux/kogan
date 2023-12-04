@@ -1,8 +1,7 @@
 use crate::services::BaseService;
 use mongodb::{
-    bson::{doc, Bson, Document},
+    bson::{doc, Document},
     error::Error,
-    options::FindOptions,
     Collection,
 };
 use serde::{Deserialize, Serialize};
@@ -13,8 +12,8 @@ pub struct User {
         rename(serialize = "_id", deserialize = "_id"),
         skip_serializing_if = "String::is_empty"
     )]
-    id: String,
-    animes: Vec<String>,
+    pub id: String,
+    pub animes: Vec<String>,
 }
 
 impl User {
@@ -25,8 +24,8 @@ impl User {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UpsertUserReq {
-    id: String,
-    animes: String,
+    pub id: String,
+    pub animes: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -58,7 +57,7 @@ impl UserService {
     //     }
     // }
 
-    pub async fn upsert_user(&self, req: UpsertUserReq) -> Result<User, Error> {
+    pub async fn upsert_user(&self, req: UpsertUserReq) -> Result<(), Error> {
         let filter = doc! {
             "_id": req.id.clone()
         };
@@ -69,20 +68,16 @@ impl UserService {
         let mut update = Document::new();
         update.insert("$set", req_doc);
 
-        let user = self.base.upsert(filter, update).await.unwrap();
-
-        Ok(user)
+        self.base.upsert(filter, update).await
     }
 
-    pub async fn get_user(&self, id: String) -> Result<User, Error> {
+    pub async fn get_user(&self, id: String) -> Result<Option<User>, Error> {
         let filter = doc! {
             "_id": id
         };
 
-        let user = self.base.find(filter, None).await;
-
-        match user {
-            Ok(user) => Ok(user[0].clone()),
+        match self.base.find_one(filter, None).await {
+            Ok(user) => Ok(user),
             Err(e) => Err(e),
         }
     }
