@@ -80,7 +80,7 @@ async fn recommend(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                         },
                         OAIReqMessage {
                             content: format!(
-                                "List of anime I enjoy: {}",
+                                "Base your recommendations on the genre of the anime in this list: {}",
                                 user.animes
                                     .into_iter()
                                     .take(10)
