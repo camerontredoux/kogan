@@ -105,58 +105,6 @@ async fn favorite(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     }).await?;
                 }
             }
-
-            msg.channel_id
-                .send_message(&ctx.http, |m| {
-                    m.embed(|e| {
-                        e.color(Color::GOLD)
-                            .title(format!(
-                                "{} (_{}_)",
-                                media.title_romaji(),
-                                media.title_english()
-                            ))
-                            .author(|a| {
-                                a.icon_url("https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png").name("❯❯ Link to MyAnimeList").url(format!("https://myanimelist.net/anime/{}", media.id()))
-                            })
-                            .description(media.description())
-                            .image(media.cover_image())
-                            .fields(vec![
-                                ("Rating", format!("{}%", media.average_score()), true),
-                                (
-                                    "Episode Count",
-                                    format!("{} episodes", media.episodes()),
-                                    true,
-                                ),
-                                (
-                                    "Episode Duration",
-                                    format!("{} minutes", media.duration()),
-                                    true,
-                                ),
-                            ])
-                            .fields(vec![
-                                ("Start Date", media.start_date(), true),
-                                ("End Date", media.end_date(), true),
-                                ("Status", media.status(), true),
-                            ])
-                            .fields(vec![
-                                (
-                                    "Season",
-                                    format!("{} {}", media.season(), media.season_year()),
-                                    true,
-                                ),
-                                ("Rankings", media.rankings(), true),
-                                ("Popularity", media.popularity(), true),
-                            ])
-                            .fields(vec![("Genre", media.genres(), true),("Format", media.format(), true)])
-                            .footer(|f| {
-                                f.text("Powered by AniList.co");
-                                f.icon_url(
-                                    "https://anilist.co/img/icons/android-chrome-512x512.png",
-                                )
-                            })
-                    })
-                })
-                .await?;
         }
         None => {
             msg.channel_id

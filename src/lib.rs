@@ -7,8 +7,9 @@ mod types;
 
 use commands::{
     about::*,
-    anime::{countdown::*, favorite::*, info::*, recommend::*, trending::*},
+    anime::{countdown::*, favorite::*, favorites::*, info::*, recommend::*, trending::*},
     help::*,
+    misc::translate::*,
 };
 use handler::Handler;
 use hooks::*;
@@ -24,8 +25,13 @@ use std::process;
 
 #[group]
 #[description = "Kōgan's general commands for displaying anime information."]
-#[commands(info, trending, countdown, recommend, favorite)]
+#[commands(info, trending, countdown, recommend, favorite, favorites)]
 struct Anime;
+
+#[group]
+#[description = "Miscellaneous commands that are useful for our server."]
+#[commands(translate)]
+struct Misc;
 
 #[group]
 #[description = "Kōgan's commands for displaying bot information."]
@@ -72,7 +78,8 @@ pub async fn init(token: String) -> Result<(), Box<dyn std::error::Error>> {
         })
         .await
         .group(&ANIME_GROUP)
-        .group(&ABOUT_GROUP);
+        .group(&ABOUT_GROUP)
+        .group(&MISC_GROUP);
 
     let mut client = Client::builder(token, intents)
         .event_handler(Handler)
